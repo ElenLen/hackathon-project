@@ -1,28 +1,52 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import ScenarioEditor from "./pages/ScenarioEditor";
+import React, { useEffect } from 'react';
+import ReactFlow, { Background, Controls, Node } from 'reactflow';
+import type { Edge } from 'reactflow';
+import 'reactflow/dist/style.css';
+import { wsClient } from './api/websocket';
+import { useDeviceStore } from './store/deviceStore';
+import { DeviceNode } from './components/DeviceNode';
 
-function App() {
+const nodeTypes = {
+  deviceNode: DeviceNode,
+};
+
+const initialNodes: Node[] = [
+  {
+    id: '1',
+    type: 'deviceNode',
+    position: { x: 250, y: 100 },
+    data: { deviceId: 'sensor_1', label: 'Датчик температуры' },
+  },
+];
+
+const initialEdges: Edge[] = [];
+
+export const App: React.FC = () => {
+  const setDevices = useDeviceStore((state) => state.setDevices);
+  const updateDevice = useDeviceStore((state) => state.updateDevice);
+
+  useEffect(() => {
+    wsClient.connect();
+
+    const unsubscribe = wsClient.subscribe((msg) => {
+      if (msg.type === 'INIT_STATE') {
+        setDevices(msg.data);
+      } else if (msg.type === 'TELEMETRY' || msg.type === 'DEVICE_UPDATED') {
+        updateDevice(msg.data);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [setDevices, updateDevice]);
+
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-slate-900 text-slate-100">
-        <nav className="p-4 bg-slate-800 flex gap-4 border-b border-slate-700">
-          <Link to="/" className="hover:text-cyan-400">
-            Дашборд
-          </Link>
-          <Link to="/editor" className="hover:text-cyan-400">
-            Редактор сценариев
-          </Link>
-        </nav>
-        <main className="p-6">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/editor" element={<ScenarioEditor />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+    <div className="w-screen h-screen bg-slate-50">
+      <ReactFlow nodes={initialNodes} edges={initialEdges} nodeTypes={nodeTypes}>
+        <Background />
+        <Controls />
+      </ReactFlow>
+    </div>
   );
-}
+};
 
 export default App;

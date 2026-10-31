@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """WS-клиент умного дома по контракту МП (ujin-ios).
 
 Адрес: GET /api/devices/wss/?token=<ust> -> data.wss[0] (на preprod пусто,
@@ -117,3 +118,63 @@ def fetch_wss_address(api_base, token):
         return None, data.get("message")
     addrs = [a for a in (data.get("data") or {}).get("wss") or [] if a]
     return (addrs[0] if addrs else None), None
+=======
+import asyncio
+import json
+from typing import Dict, Any, Optional
+import websockets
+from core import BaseDevice, SensorDevice
+
+CONNECTED_CLIENTS = set()
+DEVICES: Dict[str, BaseDevice] = {
+    "sensor_1": SensorDevice("sensor_1")
+}
+
+async def register(websocket):
+    CONNECTED_CLIENTS.add(websocket)
+    # Отправляем текущее состояние при подключении
+    initial_data = [dev.get_telemetry() for dev in DEVICES.values()]
+    await websocket.send(json.dumps({"type": "INIT_STATE", "data": initial_data}))
+
+async def unregister(websocket):
+    CONNECTED_CLIENTS.remove(websocket)
+
+async def handle_message(websocket, path):
+    await register(websocket)
+    try:
+        async for message in websocket:
+            data = json.loads(message)
+            msg_type = data.get("type")
+            
+            if msg_type == "COMMAND":
+                device_id = data.get("device_id")
+                command = data.get("command")
+                payload = data.get("payload", {})
+                
+                if device_id in DEVICES:
+                    result = await DEVICES[device_id].process_command(command, payload)
+                    broadcast_message = json.dumps({"type": "DEVICE_UPDATED", "data": result})
+                    await asyncio.gather(*[client.send(broadcast_message) for client in CONNECTED_CLIENTS])
+    except websockets.ConnectionClosedError:
+        pass
+    finally:
+        await unregister(websocket)
+
+async def telemetry_loop():
+    while True:
+        await asyncio.sleep(2)
+        for dev in DEVICES.values():
+            if isinstance(dev, SensorDevice):
+                await dev.step()
+                msg = json.dumps({"type": "TELEMETRY", "data": dev.get_telemetry()})
+                if CONNECTED_CLIENTS:
+                    await asyncio.gather(*[client.send(msg) for client in CONNECTED_CLIENTS])
+
+async def main():
+    server = await websockets.serve(handle_message, "0.0.0.0", 8080)
+    print("WebSocket Emulator running on ws://localhost:8080")
+    await asyncio.gather(server.wait_closed(), telemetry_loop())
+
+if __name__ == "__main__":
+    asyncio.run(main())
+>>>>>>> d58725f (добавила новые файлы)
