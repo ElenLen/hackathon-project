@@ -1,195 +1,145 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Cpu, Save, Code } from 'lucide-react';
-
-interface DeviceCapability {
-  id: string;
-  name: string;
-  type: 'property' | 'action' | 'event';
-  dataType: 'boolean' | 'number' | 'string';
-  unit?: string;
-}
-
-interface CustomDevice {
-  id: string;
-  name: string;
-  category: string;
-  capabilities: DeviceCapability[];
-}
+import { Plus, Cpu, Save, Shield, Droplets, Zap } from 'lucide-react';
+import { useSmartHomeStore } from '../store/useSmartHomeStore';
 
 export const DeviceBuilder: React.FC = () => {
-  const [deviceName, setDeviceName] = useState('');
-  const [category, setCategory] = useState('sensors');
-  const [capabilities, setCapabilities] = useState<DeviceCapability[]>([]);
-  const [showJson, setShowJson] = useState(false);
+  const { addDevice } = useSmartHomeStore();
+  const [name, setName] = useState('');
+  const [type, setType] = useState<'leak' | 'barrier' | 'boiler' | 'counter' | 'relay'>('leak');
+  const [sn, setSn] = useState('');
+  const [signals, setSignals] = useState<{ name: str; code: str }[]>([
+    { name: 'Протечка', code: 'leak_status' }
+  ]);
 
-  const addCapability = () => {
-    const newCap: DeviceCapability = {
-      id: `cap_${Date.now()}`,
-      name: '',
-      type: 'property',
-      dataType: 'boolean',
+  const handleAddSignal = () => {
+    setSignals([...signals, { name: '', code: '' }]);
+  };
+
+  const handleSaveDevice = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !sn) return;
+
+    const newDevice = {
+      id: `dev_${Date.now()}`,
+      name,
+      type,
+      sn,
+      status: 'online' as const,
+      value: type === 'barrier' ? 1 : 0
     };
-    setCapabilities([...capabilities, newCap]);
-  };
 
-  const removeCapability = (id: string) => {
-    setCapabilities(capabilities.filter((c) => c.id !== id));
-  };
-
-  const updateCapability = (id: string, field: keyof DeviceCapability, value: any) => {
-    setCapabilities(
-      capabilities.map((c) => (c.id === id ? { ...c, [field]: value } : c))
-    );
-  };
-
-  const generatedSchema: CustomDevice = {
-    id: `dev_type_${deviceName.toLowerCase().replace(/\s+/g, '_') || 'custom'}`,
-    name: deviceName || 'Новое устройство',
-    category,
-    capabilities,
+    addDevice(newDevice);
+    setName('');
+    setSn('');
+    alert('Устройство успешно добавлено в схему!');
   };
 
   return (
-    <div className="bg-slate-900 text-white p-6 rounded-xl border border-slate-800 shadow-xl max-w-4xl mx-auto">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
-        <div className="flex items-center gap-3">
-          <Cpu className="w-7 h-7 text-indigo-400" />
-          <h2 className="text-xl font-bold">Конструктор профилей устройств (Ujin Spec)</h2>
-        </div>
-        <button
-          onClick={() => setShowJson(!showJson)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-800 hover:bg-slate-700 rounded-lg transition"
-        >
-          <Code className="w-4 h-4" />
-          {showJson ? 'Скрыть JSON' : 'Показать JSON'}
-        </button>
+    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl">
+      <div className="flex items-center gap-3 mb-6">
+        <Cpu className="w-6 h-6 text-cyan-400" />
+        <h2 className="text-xl font-bold text-slate-100">Конструктор устройств Ujin OS</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <form onSubmit={handleSaveDevice} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">
-            Название типа устройства
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            Название устройства
           </label>
           <input
             type="text"
-            placeholder="Например: Датчик протечки воды"
-            value={deviceName}
-            onChange={(e) => setDeviceName(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Например: Задвижка вводная (Кухня)"
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500 transition-colors"
+            required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">Категория</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
-          >
-            <option value="sensors">Датчики и безопасность</option>
-            <option value="climate">Климат и Вентиляция</option>
-            <option value="lighting">Освещение и Электрика</option>
-            <option value="valves">Запорная арматура / Приводы</option>
-            <option value="meters">Счетчики ресурсов</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-md font-semibold text-slate-300">
-            Возможности (Properties / Actions / Events)
-          </h3>
-          <button
-            onClick={addCapability}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition"
-          >
-            <Plus className="w-4 h-4" /> Добавить атрибут
-          </button>
-        </div>
-
-        {capabilities.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 border border-dashed border-slate-800 rounded-lg">
-            Нажмите «Добавить атрибут», чтобы описать свойства или действия устройства
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              Тип устройства
+            </label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as any)}
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500 transition-colors"
+            >
+              <option value="leak">Датчик протечки</option>
+              <option value="barrier">Запорный кран / Барьер</option>
+              <option value="boiler">Котел / Нагреватель</option>
+              <option value="counter">Счетчик импульсов</option>
+              <option value="relay">Силовое реле</option>
+            </select>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {capabilities.map((cap) => (
-              <div
-                key={cap.id}
-                className="flex items-center gap-3 bg-slate-800/60 p-3 rounded-lg border border-slate-700/50"
-              >
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              Серийный номер (S/N)
+            </label>
+            <input
+              type="text"
+              value={sn}
+              onChange={(e) => setSn(e.target.value)}
+              placeholder="SN-998234-UJ"
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-cyan-500 transition-colors"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Сигналы устройства (Ujin Signal Protocol)
+            </label>
+            <button
+              type="button"
+              onClick={handleAddSignal}
+              className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" /> Добавить сигнал
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {signals.map((sig, idx) => (
+              <div key={idx} className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Имя (например, water_leak)"
-                  value={cap.name}
-                  onChange={(e) => updateCapability(cap.id, 'name', e.target.value)}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-sm text-white focus:outline-none"
+                  placeholder="Имя сигнала (напр. Затопление)"
+                  value={sig.name}
+                  onChange={(e) => {
+                    const copy = [...signals];
+                    copy[idx].name = e.target.value;
+                    setSignals(copy);
+                  }}
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100"
                 />
-
-                <select
-                  value={cap.type}
-                  onChange={(e) =>
-                    updateCapability(cap.id, 'type', e.target.value as any)
-                  }
-                  className="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-sm text-slate-300"
-                >
-                  <option value="property">Свойство (Property)</option>
-                  <option value="action">Команда (Action)</option>
-                  <option value="event">Событие (Event)</option>
-                </select>
-
-                <select
-                  value={cap.dataType}
-                  onChange={(e) =>
-                    updateCapability(cap.id, 'dataType', e.target.value as any)
-                  }
-                  className="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-sm text-slate-300"
-                >
-                  <option value="boolean">Boolean (Вкл/Выкл)</option>
-                  <option value="number">Number (Число)</option>
-                  <option value="string">String (Строка)</option>
-                </select>
-
-                {cap.dataType === 'number' && (
-                  <input
-                    type="text"
-                    placeholder="Ед.изм (ед/°C/% )"
-                    value={cap.unit || ''}
-                    onChange={(e) => updateCapability(cap.id, 'unit', e.target.value)}
-                    className="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm text-white"
-                  />
-                )}
-
-                <button
-                  onClick={() => removeCapability(cap.id)}
-                  className="p-1.5 text-slate-400 hover:text-red-400 transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <input
+                  type="text"
+                  placeholder="Код (s_leak)"
+                  value={sig.code}
+                  onChange={(e) => {
+                    const copy = [...signals];
+                    copy[idx].code = e.target.value;
+                    setSignals(copy);
+                  }}
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono"
+                />
               </div>
             ))}
           </div>
-        )}
-      </div>
-
-      {showJson && (
-        <div className="mb-6">
-          <div className="text-xs font-mono text-slate-400 mb-1">Генерируемая Ujin-спецификация:</div>
-          <pre className="bg-slate-950 p-4 rounded-lg border border-slate-800 text-xs font-mono text-emerald-400 overflow-x-auto">
-            {JSON.stringify(generatedSchema, null, 2)}
-          </pre>
         </div>
-      )}
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
         <button
-          onClick={() => alert('Профиль устройства сохранен и готов к эмуляции!')}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition"
+          type="submit"
+          className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-cyan-600/20"
         >
-          <Save className="w-4 h-4" /> Сохранить в реестре устройств
+          <Save className="w-4 h-4" /> Сохранить в схему и Ujin
         </button>
-      </div>
+      </form>
     </div>
   );
 };

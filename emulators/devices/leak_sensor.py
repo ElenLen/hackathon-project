@@ -12,11 +12,11 @@ class LeakSensor(Device):
         super().__init__(*args, **kwargs)
         self.battery_drain = battery_drain
         self.pending_wet = False
-        self.add_signal(Signal("leak", "Протечка", "list", "r", "property", 0,
+        self.add_signal(Signal("leak", "Протечка", "list", "rw", "property", 0,
                                layout={0: "нет", 1: "протечка"}))
-        self.add_signal(Signal("battery", "Батарея", "counter", "r", "property",
+        self.add_signal(Signal("battery", "Батарея", "counter", "rw", "property",
                                100, "%", 0, 100))
-        self.add_signal(Signal("tamper", "Вскрытие", "list", "r", "property", 0,
+        self.add_signal(Signal("tamper", "Вскрытие", "list", "rw", "property", 0,
                                layout={0: "закрыт", 1: "вскрыт"}))
         self.add_signal(Signal("self_test", "Самотест", "push_time", "w", "capability", 0))
 
@@ -24,7 +24,10 @@ class LeakSensor(Device):
         self.pending_wet = wet
 
     def on_command(self, name: str, value) -> None:
-        if name == "self_test" and value:
+        if name == "leak":
+            self.pending_wet = bool(int(value) if str(value).isdigit() else value)
+            self.log(f"[{self.model}] pending_wet={self.pending_wet}")
+        elif name == "self_test" and value:
             self.pending_wet = False
             self.log(f"[{self.model}] самотест: датчик сухой")
 
