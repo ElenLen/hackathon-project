@@ -49,6 +49,7 @@ fun OtpScreen(
             painter = painterResource(id = R.drawable.logo_ujin),
             contentDescription = "Ujin Logo",
             modifier = Modifier
+                .align(Alignment.CenterHorizontally)
                 .width(180.dp)
                 .wrapContentHeight()
                 .scale(2f)
@@ -70,16 +71,15 @@ fun OtpScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Отрисовываем 6 ячеек
+            //  6 ячеек
             for (i in 0 until 6) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .aspectRatio(1f) // Квадратные ячейки
+                        .aspectRatio(1f) 
                         .background(UjinLightGray, RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Если в строке code есть символ с индексом i, показываем его
                     if (code.length > i) {
                         Text(
                             text = code[i].toString(),

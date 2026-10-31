@@ -38,13 +38,15 @@ fun RegisterScreen(onBackClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Text(
-            text = "Ujin",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+         Image(
+            painter = painterResource(id = R.drawable.logo_ujin),
+            contentDescription = "Ujin Logo",
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .width(180.dp)
+                .wrapContentHeight()
+                .scale(2f)
+)
 
         Spacer(modifier = Modifier.height(32.dp))
 

@@ -47,7 +47,6 @@ fun SplashScreen(
 
             // 2. Логотип и текст поверх картинки
             Column(
-                // Отступы из Figma: Top = 74, Left = 25
                 modifier = Modifier
                     .padding(top = 74.dp, start = 25.dp, end = 25.dp)
             ) {
@@ -61,16 +60,15 @@ fun SplashScreen(
                         .scale(2f)
                 )
 
-                // Отступ между лого и текстом (подберите на глаз, если в Figma не указано)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Текст под логотипом
                 Text(
                     text = "Технологии\nдля комфортной\nжизни",
                     color = Color.Black,
-                    fontSize = 24.sp, // Если в Figma другой размер, поменяйте
+                    fontSize = 24.sp, 
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 30.sp // Межстрочный интервал
+                    lineHeight = 30.sp 
                 )
             }
         }
@@ -80,7 +78,6 @@ fun SplashScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                // Отступы кнопок из Figma: 16px по бокам (я поставил 20dp для красоты)
                 .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -88,7 +85,7 @@ fun SplashScreen(
                 onClick = onLoginClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp), // В Figma кнопки обычно ~50-56px
+                    .height(52.dp), 
                 colors = ButtonDefaults.buttonColors(containerColor = UjinCyan),
                 shape = RoundedCornerShape(12.dp)
             ) {

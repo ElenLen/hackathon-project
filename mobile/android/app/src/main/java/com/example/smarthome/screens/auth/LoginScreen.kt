@@ -46,7 +46,6 @@ fun LoginScreen(
             .background(Color.White)
             .padding(24.dp)
     ) {
-        // Кнопка назад (Стрелочка)
         IconButton(
             onClick = onBackClick,
             modifier = Modifier.padding(top = 24.dp)
@@ -64,6 +63,7 @@ fun LoginScreen(
             painter = painterResource(id = R.drawable.logo_ujin),
             contentDescription = "Ujin Logo",
             modifier = Modifier
+                .align(Alignment.CenterHorizontally)
                 .width(180.dp)
                 .wrapContentHeight()
                 .scale(2f)
@@ -98,7 +98,7 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Само поле
+            // поле
             Box(
                 modifier = Modifier
                     .weight(1f)
