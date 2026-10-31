@@ -2,7 +2,7 @@ from pathlib import Path
 
 import aiosqlite
 
-from backend.core.config import settings
+from core.config import settings
 
 
 async def get_db() -> aiosqlite.Connection:

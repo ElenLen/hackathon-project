@@ -6,7 +6,7 @@
 """
 from __future__ import annotations
 
-from core import Device, Signal
+from emulators.core import Device, Signal
 
 RESOURCES = {
     "electricity": ("Электроэнергия", "кВт·ч", 0.7),

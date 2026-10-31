@@ -1,7 +1,7 @@
 """Датчик протечки: wet-автомат + батарея + самотест. Шаблон — device-templates.md."""
 from __future__ import annotations
 
-from core import Device, Signal
+from emulators.core import Device, Signal
 
 
 class LeakSensor(Device):

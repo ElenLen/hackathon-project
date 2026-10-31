@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from backend.schemas.device import DeviceOut
-from backend.services import device_service, signal_service
+from schemas.device import DeviceOut
+from services import device_service, signal_service
 
 router = APIRouter()
 

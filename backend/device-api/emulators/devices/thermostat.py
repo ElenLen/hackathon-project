@@ -1,7 +1,7 @@
 """Термостат: гистерезис ±0.5 от цели, пассивный дрейф к окружающей."""
 from __future__ import annotations
 
-from core import Device, Signal
+from emulators.core import Device, Signal
 
 OFF, HEAT, COOL, AUTO = 0, 1, 2, 3
 HYSTERESIS = 0.5

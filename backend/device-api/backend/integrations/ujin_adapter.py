@@ -1,16 +1,7 @@
-import os
 import httpx
-from pydantic_settings import BaseSettings
 
-class Settings(BaseSettings):
-    resident_ust: str = os.getenv("RESIDENT_UST", "ust-2815073-048272461ef140f8b1d680df3bbb88d0")
-    apartment_id: int = int(os.getenv("APARTMENT_ID", "2785"))
-    ujin_base_url: str = os.getenv("UJIN_BASE_URL", "https://api-uae-test.ujin.tech")
-
-    class Config:
-        env_file = ".env"
-
-settings = Settings()
+# Импортируем готовый объект settings из вашего общего конфига
+from core.config import settings
 
 class UjinAdapter:
     def __init__(self):

@@ -1,17 +1,22 @@
 import asyncio
+import sys
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-from backend.integrations.ujin_adapter import adapter
 
-from backend.core.config import settings
-from backend.db.models import init_db
-from backend.services.device_service import seed_devices
-from backend.integrations.poller import poll_forever
-from backend.services.rule_engine import rule_engine
-from backend.api import router as api_router
+# Убрали префикс backend. из локальных импортов
+from integrations.ujin_adapter import adapter
+from core.config import settings
+from db.models import init_db
+from services.device_service import seed_devices
+from integrations.poller import poll_forever
+from services.rule_engine import rule_engine
+from api import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -95,4 +100,5 @@ async def publish_signals(payload: PublishRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8001, reload=True)
+    # Обратите внимание: тут путь тоже изменен на "main:app", так как мы запускаем из этой папки
+    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=False)

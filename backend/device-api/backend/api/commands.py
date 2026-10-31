@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from backend.integrations.ujin_adapter import adapter
-from backend.core.config import settings
+from integrations.ujin_adapter import adapter
+from core.config import settings
 import re
 
 router = APIRouter()

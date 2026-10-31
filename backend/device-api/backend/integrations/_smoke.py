@@ -1,6 +1,6 @@
 import asyncio
 from emulators.ujin_client import UjinClient
-from backend.core.config import settings
+from core.config import settings
 
 
 async def main():

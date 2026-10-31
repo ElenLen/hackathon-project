@@ -10,9 +10,9 @@
 """
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.services import signal_service, device_service
-from backend.services.rule_engine import rule_engine
-from backend.integrations.ujin_adapter import adapter
+from services import signal_service, device_service
+from services.rule_engine import rule_engine
+from integrations.ujin_adapter import adapter
 
 router = APIRouter()
 

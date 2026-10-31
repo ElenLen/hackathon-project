@@ -55,7 +55,7 @@ def build_source(mod: str, title: str, signals: list) -> str:
         'Три группы: 📊 свойство (читаю) / 🎛 возможность (управляю) / ⚙️ настройка.\n'
         'Правь сигналы, `tick()` и `on_command()` под своё железо.\n"""\n'
         'from __future__ import annotations\n\n'
-        'from core import Device, Signal\n\n\n'
+        'from emulators.core import Device, Signal\n\n\n'
         f'class {cls}(Device):\n'
         f'    model = "emul_{mod}"\n'
         f'    title = "{title}"\n\n'

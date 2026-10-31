@@ -17,7 +17,7 @@ import os
 import time
 
 from devices import REGISTRY
-from core import CommandServer
+from emulators.core import CommandServer
 from ujin_client import UjinClient
 
 

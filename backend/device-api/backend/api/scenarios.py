@@ -1,8 +1,8 @@
 import json, uuid
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from backend.db.models import get_db
-from backend.services.rule_engine import rule_engine
+from db.models import get_db
+from services.rule_engine import rule_engine
 
 router = APIRouter()
 

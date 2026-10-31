@@ -1,7 +1,7 @@
 """Шлагбаум: открытие по команде, авто-закрытие через hold_time, реверс по препятствию."""
 from __future__ import annotations
 
-from core import Device, Signal
+from emulators.core import Device, Signal
 
 CLOSED, OPENING, OPEN, CLOSING, HOLD = 0, 1, 2, 3, 4
 LAYOUT = {CLOSED: "закрыто", OPENING: "открывается", OPEN: "открыто",
