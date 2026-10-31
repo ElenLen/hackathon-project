@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import ReactFlow, { Background, Controls, Node } from 'reactflow';
-import type { Edge } from 'reactflow';
+import ReactFlow, { Background, Controls } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { wsClient } from './api/websocket';
 import { useDeviceStore } from './store/deviceStore';
