@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val DarkColors = darkColorScheme(
     primary = UjinBlue,
@@ -15,12 +16,21 @@ private val DarkColors = darkColorScheme(
     surfaceVariant = UjinSurfaceVariant,
     onSurface = UjinOnSurface,
     onBackground = UjinOnSurface,
+    onSurfaceVariant = Color(0xFF9AA4AE),
+    outlineVariant = Color(0xFF2E353D),
 )
 
 private val LightColors = lightColorScheme(
     primary = UjinBlueDark,
     secondary = UjinGreen,
     error = UjinRed,
+    background = Color.White,
+    surface = Color.White,
+    surfaceVariant = UjinLightGray,
+    onSurface = UjinDarkGray,
+    onBackground = UjinDarkGray,
+    onSurfaceVariant = Color.Gray,
+    outlineVariant = Color(0xFFE8EAED),
 )
 
 @Composable

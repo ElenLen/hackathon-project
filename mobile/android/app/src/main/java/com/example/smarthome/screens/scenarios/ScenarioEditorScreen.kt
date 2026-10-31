@@ -32,6 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -47,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,8 +55,6 @@ import androidx.compose.ui.unit.sp
 import com.example.smarthome.data.RepositoryProvider
 import com.example.smarthome.data.dto.DeviceOut
 import com.example.smarthome.ui.theme.UjinCyan
-import com.example.smarthome.ui.theme.UjinDarkGray
-import com.example.smarthome.ui.theme.UjinLightGray
 import com.example.smarthome.ui.theme.UjinSurface
 
 @Composable
@@ -88,7 +86,7 @@ fun ScenarioEditorScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -100,7 +98,7 @@ fun ScenarioEditorScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Назад",
-                    tint = UjinDarkGray,
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
             Spacer(Modifier.width(4.dp))
@@ -108,7 +106,7 @@ fun ScenarioEditorScreen(
                 text = "Новый сценарий",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = UjinDarkGray,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
@@ -134,7 +132,7 @@ fun ScenarioEditorScreen(
                     Text(
                         text = error ?: "Ошибка загрузки",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -219,7 +217,7 @@ fun ScenarioEditorScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 25.dp, vertical = 6.dp),
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
@@ -245,8 +243,8 @@ fun ScenarioEditorScreen(
             colors = ButtonDefaults.buttonColors(
                 containerColor = UjinCyan,
                 contentColor = UjinSurface,
-                disabledContainerColor = UjinLightGray,
-                disabledContentColor = Color.Gray,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             ),
         ) {
             Text(
@@ -286,12 +284,12 @@ private fun SectionHeader(
             text = title,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = UjinDarkGray,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = subtitle,
             fontSize = 12.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -301,7 +299,7 @@ private fun Hint(text: String) {
     Text(
         text = text,
         fontSize = 13.sp,
-        color = Color.Gray,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(vertical = 4.dp),
     )
 }
@@ -342,8 +340,8 @@ private fun RuleCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, UjinLightGray),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
@@ -374,7 +372,7 @@ private fun RuleCard(
                     text = rule.deviceTitle,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -385,7 +383,7 @@ private fun RuleCard(
                         "${signalLabel(rule.signal)} ${rule.operator} ${rule.value}"
                     },
                     fontSize = 12.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -395,7 +393,7 @@ private fun RuleCard(
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "Удалить",
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -433,7 +431,7 @@ private fun RuleDialog(
                 text = if (kind == RuleKind.CONDITION) "Новое условие" else "Новое действие",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = UjinDarkGray,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
         text = {
@@ -463,7 +461,7 @@ private fun RuleDialog(
                     Text(
                         text = "Нет доступных сигналов",
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -503,7 +501,7 @@ private fun RuleDialog(
                 Text(
                     text = "Например: true, false, 25 или 0",
                     fontSize = 11.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
@@ -527,11 +525,11 @@ private fun RuleDialog(
                 Text("Добавить")
             }
         },
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена", color = Color.Gray)
+                Text("Отмена", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
     )
@@ -543,7 +541,7 @@ private fun DialogLabel(text: String) {
         text = text,
         fontSize = 13.sp,
         fontWeight = FontWeight.Medium,
-        color = UjinDarkGray,
+        color = MaterialTheme.colorScheme.onSurface,
     )
 }
 

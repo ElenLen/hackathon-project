@@ -55,7 +55,13 @@ fun NavGraph() {
 
         // 5. Главный экран с нижней навигацией
         composable("main") {
-            MainScreen()
+            MainScreen(
+                onLogout = {
+                    nav.navigate("login") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                },
+            )
         }
     }
 }

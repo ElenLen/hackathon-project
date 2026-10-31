@@ -26,13 +26,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,8 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.smarthome.ui.theme.UjinCyan
-import com.example.smarthome.ui.theme.UjinDarkGray
-import com.example.smarthome.ui.theme.UjinLightGray
 import com.example.smarthome.ui.theme.UjinSurface
 
 @Composable
@@ -53,7 +51,7 @@ fun ScenariosScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Text(
             text = "Сценарии",
@@ -62,7 +60,7 @@ fun ScenariosScreen(
                 .padding(top = 24.dp, start = 25.dp, end = 25.dp),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = UjinDarkGray,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
         )
 
@@ -142,7 +140,7 @@ private fun EmptyScenarios(
                     .width(236.dp)
                     .height(198.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(UjinLightGray),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -160,7 +158,7 @@ private fun EmptyScenarios(
                 modifier = Modifier.widthIn(max = 257.dp),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = UjinDarkGray,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
             )
 
@@ -171,7 +169,7 @@ private fun EmptyScenarios(
                 modifier = Modifier.widthIn(max = 257.dp),
                 fontSize = 14.sp,
                 lineHeight = 19.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         }
@@ -185,8 +183,8 @@ private fun ScenarioCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, UjinLightGray),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
@@ -217,7 +215,7 @@ private fun ScenarioCard(
                     text = scenario.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -225,7 +223,7 @@ private fun ScenarioCard(
                 Text(
                     text = scenario.summary,
                     fontSize = 12.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

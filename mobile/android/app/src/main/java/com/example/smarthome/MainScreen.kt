@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.DevicesOther
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -46,7 +47,9 @@ private val bottomTabs = listOf(
 )
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    onLogout: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -63,7 +66,7 @@ fun MainScreen() {
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
@@ -121,7 +124,9 @@ fun MainScreen() {
                     onSaved = { navController.popBackStack() },
                 )
             }
-            composable("profile") { ProfileScreen() }
+            composable("profile") {
+                ProfileScreen(onLogout = onLogout)
+            }
         }
     }
 }

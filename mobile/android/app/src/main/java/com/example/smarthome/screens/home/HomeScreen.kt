@@ -34,6 +34,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -61,9 +62,7 @@ import com.example.smarthome.data.dto.ScenarioOut
 import com.example.smarthome.ui.components.ErrorBanner
 import com.example.smarthome.ui.components.LoadingBox
 import com.example.smarthome.ui.theme.UjinCyan
-import com.example.smarthome.ui.theme.UjinDarkGray
 import com.example.smarthome.ui.theme.UjinGreen
-import com.example.smarthome.ui.theme.UjinLightGray
 import com.example.smarthome.ui.theme.UjinRed
 
 @Composable
@@ -82,7 +81,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -90,7 +89,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
         ) {
             if (state.loading && state.devices.isEmpty() && state.scenarios.isEmpty()) {
                 LoadingBox()
@@ -185,13 +184,13 @@ private fun HomeHeader() {
                 text = "Моя квартира",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = UjinDarkGray,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = "Умный дом Ujin",
                 fontSize = 13.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -199,7 +198,7 @@ private fun HomeHeader() {
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(UjinLightGray),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -264,13 +263,13 @@ private fun StatusCard(
                     text = if (allGood) "Всё хорошо" else "Есть проблемы",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -329,7 +328,7 @@ private fun QuickActionTile(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(UjinLightGray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick)
             .padding(horizontal = 6.dp, vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -338,7 +337,7 @@ private fun QuickActionTile(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -355,14 +354,14 @@ private fun QuickActionTile(
             text = action.title,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            color = UjinDarkGray,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
             text = action.subtitle,
             fontSize = 10.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -384,7 +383,7 @@ private fun QuickScenariosRow(
                 modifier = Modifier
                     .clip(RoundedCornerShape(100.dp))
                     .background(
-                        if (scenario.enabled) UjinCyan.copy(alpha = 0.12f) else UjinLightGray,
+                        if (scenario.enabled) UjinCyan.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
                     )
                     .clickable(
                         enabled = !busy && busyScenarioId == null,
@@ -403,7 +402,7 @@ private fun QuickScenariosRow(
                     Icon(
                         imageVector = Icons.Filled.Bolt,
                         contentDescription = null,
-                        tint = if (scenario.enabled) UjinCyan else UjinDarkGray,
+                        tint = if (scenario.enabled) UjinCyan else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(16.dp),
                     )
                 }
@@ -414,7 +413,7 @@ private fun QuickScenariosRow(
                     text = scenario.name,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -432,7 +431,7 @@ private fun ScenarioRow(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = UjinLightGray),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -442,7 +441,7 @@ private fun ScenarioRow(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surface),
                 contentAlignment = Alignment.Center,
             ) {
                 if (busy) {
@@ -468,7 +467,7 @@ private fun ScenarioRow(
                     text = scenario.name,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -476,7 +475,7 @@ private fun ScenarioRow(
                 Text(
                     text = if (scenario.enabled) "Активен" else "Выключен",
                     fontSize = 12.sp,
-                    color = if (scenario.enabled) UjinGreen else Color.Gray,
+                    color = if (scenario.enabled) UjinGreen else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -490,7 +489,7 @@ private fun ScenarioRow(
                     checkedThumbColor = Color.White,
                     checkedTrackColor = UjinCyan,
                     uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = Color(0xFFD7DBDF),
+                    uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
                 ),
             )
         }
@@ -503,7 +502,7 @@ private fun SectionTitle(text: String) {
         text = text,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
-        color = UjinDarkGray,
+        color = MaterialTheme.colorScheme.onSurface,
     )
 }
 
@@ -513,7 +512,7 @@ private fun SubsectionTitle(text: String) {
         text = text,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
-        color = Color.Gray,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -522,13 +521,13 @@ private fun EmptyHint(text: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = UjinLightGray),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(16.dp),
             fontSize = 14.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

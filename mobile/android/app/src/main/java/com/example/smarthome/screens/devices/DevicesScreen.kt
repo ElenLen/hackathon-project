@@ -36,6 +36,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -57,9 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.smarthome.data.dto.DeviceOut
 import com.example.smarthome.ui.theme.UjinCyan
-import com.example.smarthome.ui.theme.UjinDarkGray
 import com.example.smarthome.ui.theme.UjinGreen
-import com.example.smarthome.ui.theme.UjinLightGray
 import com.example.smarthome.ui.theme.UjinRed
 import com.example.smarthome.ui.theme.UjinSurface
 import kotlinx.coroutines.launch
@@ -78,7 +77,7 @@ fun DevicesScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -88,13 +87,13 @@ fun DevicesScreen(
                     text = "Устройства",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = devicesCountText(state.devices.size),
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -123,7 +122,7 @@ fun DevicesScreen(
                             Text(
                                 text = state.error ?: "Ошибка загрузки",
                                 fontSize = 14.sp,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             TextButton(onClick = viewModel::loadDevices) {
                                 Text("Повторить", color = UjinCyan)
@@ -199,16 +198,21 @@ private fun DeviceCard(
     modifier: Modifier = Modifier,
 ) {
     val online = device.lastValues["online"]?.booleanOrNull != false
-    val (status, statusColor) = device.status()
-    val accentColor = if (online) UjinCyan else Color.Gray
+    val (status, rawStatusColor) = device.status()
+    val statusColor = if (rawStatusColor == Color.Gray) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        rawStatusColor
+    }
+    val accentColor = if (online) UjinCyan else MaterialTheme.colorScheme.onSurfaceVariant
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, UjinLightGray),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Box(
@@ -254,7 +258,7 @@ private fun DeviceCard(
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -264,7 +268,7 @@ private fun DeviceCard(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 19.sp,
-                    color = UjinDarkGray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
