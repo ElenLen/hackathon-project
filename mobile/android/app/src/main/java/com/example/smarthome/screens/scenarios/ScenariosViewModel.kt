@@ -146,10 +146,12 @@ class ScenariosViewModel : ViewModel() {
 }
 
 fun defaultPositions(scenario: ScenarioDefinition, screenWidth: Float): Map<String, Offset> {
+    val nodeWidth = 150f
+    val nodeHeight = 92f
     val left = 16f
-    val right = (screenWidth - 166f).coerceAtLeast(left + 8f)
+    val right = (screenWidth - nodeWidth - 16f).coerceAtLeast(left + nodeWidth + 24f)
     val top = 20f
-    val step = 116f
+    val step = nodeHeight + 28f
     val trigger = Offset(left, top)
     val conditions = scenario.conditions.mapIndexed { index, _ ->
         Offset(left, top + step * (index + 1))

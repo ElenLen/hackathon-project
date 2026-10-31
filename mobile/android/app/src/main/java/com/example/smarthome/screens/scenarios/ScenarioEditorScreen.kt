@@ -3,6 +3,7 @@ package com.example.smarthome.screens.scenarios
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,17 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -227,44 +225,59 @@ fun ScenarioEditorScreen(
                                 .padding(horizontal = 25.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            FilledTonalButton(
+                            Button(
                                 onClick = { addKind = RuleEditorKind.TRIGGER },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp),
                                 shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = UjinCyan.copy(alpha = 0.18f),
+                                    contentColor = UjinCyan,
+                                ),
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
+                                Text(
+                                    text = "Триггер",
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
                                 )
-                                Spacer(Modifier.width(6.dp))
-                                Text("Триггер", fontSize = 13.sp)
                             }
-                            FilledTonalButton(
+                            Button(
                                 onClick = { addKind = RuleEditorKind.CONDITION },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp),
                                 shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = UjinCyan.copy(alpha = 0.18f),
+                                    contentColor = UjinCyan,
+                                ),
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
+                                Text(
+                                    text = "Условие",
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
                                 )
-                                Spacer(Modifier.width(6.dp))
-                                Text("Условие", fontSize = 13.sp)
                             }
-                            FilledTonalButton(
+                            Button(
                                 onClick = { addKind = RuleEditorKind.ACTION },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp),
                                 shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = UjinCyan.copy(alpha = 0.18f),
+                                    contentColor = UjinCyan,
+                                ),
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
+                                Text(
+                                    text = "Действие",
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
                                 )
-                                Spacer(Modifier.width(6.dp))
-                                Text("Действие", fontSize = 13.sp)
                             }
                         }
 
@@ -342,15 +355,19 @@ fun ScenarioEditorScreen(
                     }
                     if (extraId != null && !positions.containsKey(extraId)) {
                         val anchor = positions["trigger"] ?: Offset(16f, 20f)
-                        val count = positions.size
+                        val step = 92f + 28f
+                        val sameKind = if (kind == RuleEditorKind.ACTION) {
+                            updated.actions.size - 1
+                        } else {
+                            updated.conditions.size - 1
+                        }
+                        val x = if (kind == RuleEditorKind.ACTION) {
+                            (screenWidth - 150f - 16f).coerceAtLeast(anchor.x + 150f + 24f)
+                        } else {
+                            anchor.x
+                        }
                         positions = positions.toMutableMap().apply {
-                            put(
-                                extraId,
-                                Offset(
-                                    if (kind == RuleEditorKind.ACTION) screenWidth - 166f else anchor.x,
-                                    anchor.y + 116f * count,
-                                ),
-                            )
+                            put(extraId, Offset(x, anchor.y + step * (sameKind + 1)))
                         }
                     }
                     addKind = null
