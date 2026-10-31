@@ -4,19 +4,16 @@ import sys
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
 
-# Убрали префикс backend. из локальных импортов
-from integrations.ujin_adapter import adapter
 from core.config import settings
 from db.models import init_db
 from services.device_service import seed_devices
 from integrations.poller import poll_forever
 from services.rule_engine import rule_engine
 from api import router as api_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,19 +40,19 @@ async def lifespan(app: FastAPI):
             pass
     print("[shutdown]")
 
+
 app = FastAPI(
     title="Ujin OS Hackathon API",
     description="Интеграционный бэкенд для управления устройствами и сценариями умного дома",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
-# Разрешаем CORS (объединяем настройки из вашей ветки и ветки Насти)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_list if hasattr(settings, 'cors_list') else ["*"],
+    allow_origins=settings.cors_list if hasattr(settings, "cors_list") else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,42 +60,22 @@ app.add_middleware(
 
 app.include_router(api_router)
 
-class SignalPayload(BaseModel):
-    sn: str
-    signal: str
-    value: float
-
-class PublishRequest(BaseModel):
-    signals: List[SignalPayload]
 
 @app.get("/")
 async def root():
     return {"message": "Ujin OS Integration API is running", "swagger_docs": "/docs"}
 
-@app.get("/api/devices", summary="Список устройств и сигналов квартиры")
-async def get_devices():
-    """Возвращает текущие показания устройств и сигналы из Ujin OS API"""
-    res = await adapter.get_apartment_signals()
-    return res
 
-@app.get("/api/difference", summary="Получение дельты изменений")
-async def get_difference(dt: int = 0):
-    """Возвращает сигналы, изменившиеся с момента временной метки dt"""
-    return await adapter.difference(dt)
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
-@app.post("/api/signal", summary="Отправка единичного сигнала")
-async def send_single_signal(payload: SignalPayload):
-    """Отправляет управляющую команду на конкретное устройство по S/N"""
-    res = await adapter.publish([payload.dict()])
-    return res
 
-@app.post("/api/publish", summary="Пакетная публикация сигналов")
-async def publish_signals(payload: PublishRequest):
-    """Пакетная отправка сигналов в Ujin OS"""
-    res = await adapter.publish([s.dict() for s in payload.signals])
-    return res
+@app.get("/api/health")
+async def api_health():
+    return {"status": "ok"}
+
 
 if __name__ == "__main__":
     import uvicorn
-    # Обратите внимание: тут путь тоже изменен на "main:app", так как мы запускаем из этой папки
-    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=False)
+    uvicorn.run("main:app", host="127.0.0.1", port=settings.app_port, reload=False)
