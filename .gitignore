@@ -31,3 +31,13 @@ lerna-debug.log*
 # Токены и пароли (критично для хакатона — п.7 «минного поля»)
 token.txt
 доступы.json
+
+.env
+*.sqlite3
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+node_modules/
+dist/
+.DS_Store
