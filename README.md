@@ -1,75 +1,47 @@
 # React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🏠 Ujin OS Smart Home — Scenario Editor
 
-Currently, two official plugins are available:
+Хакатон «Код. Город. Будущее.» (31.10 – 01.11.2026)
+Команда: **хихи-хахакеры**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🎯 О проекте
 
-## React Compiler
+Визуальный low-code редактор сценариев автоматизации для умных домов на базе платформы **Ujin OS**. Позволяет декларативно описывать устройства, настраивать правила «если → то» через графовый редактор и проверять их работу в реальном времени с помощью встроенных эмуляторов оборудования.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Стек технологий
 
-## Expanding the ESLint configuration
+- **React 18** + **TypeScript** + **Vite**
+- **Zustand** — управление состоянием
+- **Tailwind CSS** — стилизация
+- **React Flow** — визуальный редактор сценариев
+- **Axios** — интеграция с API Ujin OS (эмуляция)
+- **Lucide React** — иконки
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✅ Реализованные фичи
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- [x] Дашборд умного дома с комнатами и устройствами
+- [x] Эмуляторы устройств (протечка, свет и др.)
+- [x] Логи обмена с Ujin OS в реальном времени
+- [ ] Конструктор новых устройств
+- [ ] Визуальный редактор сценариев (React Flow)
+- [ ] Движок исполнения сценариев
+- [ ] Интеграция с реальным API Ujin OS
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Запуск
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+\`\`\`bash
+npm install --legacy-peer-deps
+npm run dev
+\`\`\`
+Открой [http://localhost:5173](http://localhost:5173).
 
-```
+## 📹 Демо
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+_(ссылка на видео будет здесь)_
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 👥 Команда
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+- [Имя] — Frontend Developer
+- [Имя] — Аналитик
+- [Имя] — Дизайнер
