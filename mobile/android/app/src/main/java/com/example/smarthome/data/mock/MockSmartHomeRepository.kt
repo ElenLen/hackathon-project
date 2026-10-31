@@ -56,7 +56,6 @@ class MockSmartHomeRepository : SmartHomeRepository {
     )
 
     private val scenarios = mutableMapOf<String, ScenarioOut>(
-        "sc-1" to ScenarioOut(id = "sc-1", name = "Протечка → перекрыть воду", enabled = true),
         "sc-2" to ScenarioOut(id = "sc-2", name = "Ночной режим (свет 20%)", enabled = false),
         "sc-3" to ScenarioOut(id = "sc-3", name = "Ушёл из дома", enabled = true),
         "sc-4" to ScenarioOut(id = "sc-4", name = "Доброе утро", enabled = true),
