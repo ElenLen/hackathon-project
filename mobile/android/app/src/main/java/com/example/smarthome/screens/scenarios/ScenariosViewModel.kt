@@ -332,3 +332,11 @@ private fun graphActionSummary(
     val value = declaration?.label(action.value) ?: action.value.content
     return "$title = $value"
 }
+
+fun ScenarioDefinition.triggerSummary(
+    declarations: Map<String, List<SignalDeclaration>>,
+): String {
+    if (!hasTrigger) return "Нет условия запуска"
+    val head = graphRuleSummary(trigger, declarations)
+    return if (conditions.isEmpty()) head else "$head · условий: ${conditions.size}"
+}

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -116,12 +117,16 @@ fun MainScreen(
             composable("scenarios") {
                 ScenariosScreen(
                     onAddScenario = { navController.navigate("scenario_editor") },
+                    onOpenScenario = { id -> navController.navigate("scenario_editor?scenarioId=$id") },
                 )
             }
-            composable("scenario_editor") {
+            composable(
+                route = "scenario_editor?scenarioId={scenarioId}",
+                arguments = listOf(navArgument("scenarioId") { nullable = true; defaultValue = null }),
+            ) { entry ->
                 ScenarioEditorScreen(
+                    scenarioId = entry.arguments?.getString("scenarioId"),
                     onBack = { navController.popBackStack() },
-                    onSaved = { navController.popBackStack() },
                 )
             }
             composable("profile") {

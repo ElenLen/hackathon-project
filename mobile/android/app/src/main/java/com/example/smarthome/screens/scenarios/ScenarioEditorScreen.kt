@@ -1,7 +1,5 @@
 package com.example.smarthome.screens.scenarios
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,548 +11,402 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DevicesOther
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.smarthome.data.RepositoryProvider
-import com.example.smarthome.data.dto.DeviceOut
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.smarthome.data.dto.RuleSpec
+import com.example.smarthome.data.dto.ScenarioDefinition
+import com.example.smarthome.data.dto.emptyScenario
 import com.example.smarthome.ui.theme.UjinCyan
 import com.example.smarthome.ui.theme.UjinSurface
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScenarioEditorScreen(
+    scenarioId: String? = null,
     onBack: () -> Unit,
-    onSaved: () -> Unit,
+    viewModel: ScenariosViewModel = viewModel(),
 ) {
-    var devices by remember { mutableStateOf<List<DeviceOut>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(Unit) {
-        try {
-            devices = RepositoryProvider.repository.getDevices()
-        } catch (e: Exception) {
-            error = e.message ?: "Не удалось загрузить устройства"
-        } finally {
-            loading = false
-        }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val density = LocalDensity.current
+    val screenWidth = with(density) {
+        LocalConfiguration.current.screenWidthDp.dp.toPx()
     }
 
-    var name by rememberSaveable { mutableStateOf("") }
-    val conditions = remember { mutableStateListOf<ScenarioRule>() }
-    val actions = remember { mutableStateListOf<ScenarioRule>() }
-    var dialogKind by remember { mutableStateOf<RuleKind?>(null) }
+    LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(state.error) {
+        val message = state.error ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.consumeError()
+    }
 
-    val canSave = name.isNotBlank() && conditions.isNotEmpty() && actions.isNotEmpty()
+    val isNew = scenarioId.isNullOrBlank()
+    var draft by remember { mutableStateOf<ScenarioDefinition?>(null) }
+    var positions by remember { mutableStateOf<Map<String, Offset>>(emptyMap()) }
+    var editTarget by remember { mutableStateOf<String?>(null) }
+    var addKind by remember { mutableStateOf<RuleEditorKind?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp, start = 8.dp, end = 25.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Назад",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Spacer(Modifier.width(4.dp))
-            Text(
-                text = "Новый сценарий",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
+    LaunchedEffect(isNew, scenarioId, state.scenarios, state.loading) {
+        if (state.loading || draft != null) return@LaunchedEffect
+        val source = if (isNew) {
+            emptyScenario()
+        } else {
+            state.scenarios.firstOrNull { it.id == scenarioId }
+        } ?: return@LaunchedEffect
+        draft = source
+        positions = defaultPositions(source, screenWidth)
+    }
 
-        when {
-            loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = UjinCyan)
-                }
-            }
+    val scenario = draft
+    val nodes = remember(scenario, state.devices, state.declarations) {
+        scenario?.toGraphNodes(state.devices, state.declarations).orEmpty()
+    }
+    val edges = remember(scenario) { scenario?.toGraphEdges().orEmpty() }
 
-            error != null -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
+    fun persist(result: ScenarioDefinition) {
+        val final = result.withPositions(positions)
+        viewModel.save(final, isNew) { onBack() }
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
                     Text(
-                        text = error ?: "Ошибка загрузки",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                        .padding(start = 25.dp, end = 25.dp, top = 8.dp),
-                ) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Название сценария") },
-                        placeholder = { Text("Например, Ушёл из дома") },
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                    )
-
-                    Spacer(Modifier.height(24.dp))
-
-                    SectionHeader(
-                        title = "Условия",
-                        subtitle = "Когда это произойдёт",
-                    )
-                    Spacer(Modifier.height(10.dp))
-
-                    if (conditions.isEmpty()) {
-                        Hint("Добавьте хотя бы одно условие запуска")
-                    } else {
-                        conditions.forEach { rule ->
-                            RuleCard(
-                                rule = rule,
-                                onRemove = { conditions.remove(rule) },
-                            )
-                            Spacer(Modifier.height(8.dp))
-                        }
-                    }
-
-                    AddRuleButton(
-                        text = "Добавить условие",
-                        onClick = { dialogKind = RuleKind.CONDITION },
-                    )
-
-                    Spacer(Modifier.height(24.dp))
-
-                    SectionHeader(
-                        title = "Действия",
-                        subtitle = "Что должно произойти с устройствами",
-                    )
-                    Spacer(Modifier.height(10.dp))
-
-                    if (actions.isEmpty()) {
-                        Hint("Добавьте хотя бы одно действие")
-                    } else {
-                        actions.forEach { rule ->
-                            RuleCard(
-                                rule = rule,
-                                onRemove = { actions.remove(rule) },
-                            )
-                            Spacer(Modifier.height(8.dp))
-                        }
-                    }
-
-                    AddRuleButton(
-                        text = "Добавить действие",
-                        onClick = { dialogKind = RuleKind.ACTION },
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-                }
-            }
-        }
-
-        if (!canSave && !loading && error == null) {
-            Text(
-                text = "Для сохранения добавьте название, условие и действие",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 25.dp, vertical = 6.dp),
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            )
-        }
-
-        Button(
-            onClick = {
-                UserScenarioStore.add(
-                    UserScenario(
-                        id = "user-${System.currentTimeMillis()}",
-                        name = name.trim(),
-                        conditions = conditions.toList(),
-                        actions = actions.toList(),
-                    ),
-                )
-                onSaved()
-            },
-            enabled = canSave,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 25.dp)
-                .height(59.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = UjinCyan,
-                contentColor = UjinSurface,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        ) {
-            Text(
-                text = "Сохранить сценарий",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-    }
-
-    dialogKind?.let { kind ->
-        RuleDialog(
-            kind = kind,
-            devices = devices,
-            onDismiss = { dialogKind = null },
-            onConfirm = { rule ->
-                if (kind == RuleKind.CONDITION) conditions.add(rule) else actions.add(rule)
-                dialogKind = null
-            },
-        )
-    }
-}
-
-private enum class RuleKind {
-    CONDITION,
-    ACTION,
-}
-
-@Composable
-private fun SectionHeader(
-    title: String,
-    subtitle: String,
-) {
-    Column {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = subtitle,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun Hint(text: String) {
-    Text(
-        text = text,
-        fontSize = 13.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(vertical = 4.dp),
-    )
-}
-
-@Composable
-private fun AddRuleButton(
-    text: String,
-    onClick: () -> Unit,
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, UjinCyan),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = UjinCyan),
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Add,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-        )
-    }
-}
-
-@Composable
-private fun RuleCard(
-    rule: ScenarioRule,
-    onRemove: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(UjinCyan.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.DevicesOther,
-                    contentDescription = null,
-                    tint = UjinCyan,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-
-            Spacer(Modifier.width(10.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = rule.deviceTitle,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = if (rule.operator == null) {
-                        "${signalLabel(rule.signal)} = ${rule.value}"
-                    } else {
-                        "${signalLabel(rule.signal)} ${rule.operator} ${rule.value}"
-                    },
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            IconButton(onClick = onRemove) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Удалить",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RuleDialog(
-    kind: RuleKind,
-    devices: List<DeviceOut>,
-    onDismiss: () -> Unit,
-    onConfirm: (ScenarioRule) -> Unit,
-) {
-    var selectedDeviceId by remember { mutableStateOf(devices.firstOrNull()?.id) }
-    val selectedDevice = devices.firstOrNull { it.id == selectedDeviceId }
-    val signals = selectedDevice?.lastValues?.keys?.toList().orEmpty()
-
-    var selectedSignal by remember(selectedDeviceId) {
-        mutableStateOf(signals.firstOrNull())
-    }
-    var operator by remember { mutableStateOf("=") }
-    var value by remember(selectedDeviceId, selectedSignal) {
-        mutableStateOf(
-            selectedDevice?.lastValues?.get(selectedSignal)?.content.orEmpty(),
-        )
-    }
-
-    val canConfirm = selectedDevice != null && selectedSignal != null && value.isNotBlank()
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = if (kind == RuleKind.CONDITION) "Новое условие" else "Новое действие",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                DialogLabel("Устройство")
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(devices, key = { it.id }) { device ->
-                        FilterChip(
-                            selected = device.id == selectedDeviceId,
-                            onClick = { selectedDeviceId = device.id },
-                            label = {
-                                Text(
-                                    text = device.title.ifBlank { device.id },
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            },
-                        )
-                    }
-                }
-
-                DialogLabel("Сигнал")
-                if (signals.isEmpty()) {
-                    Text(
-                        text = "Нет доступных сигналов",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(signals) { signal ->
-                            FilterChip(
-                                selected = signal == selectedSignal,
-                                onClick = { selectedSignal = signal },
-                                label = { Text(signalLabel(signal)) },
-                            )
-                        }
-                    }
-                }
-
-                if (kind == RuleKind.CONDITION) {
-                    DialogLabel("Оператор")
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("=", ">", "<").forEach { option ->
-                            FilterChip(
-                                selected = option == operator,
-                                onClick = { operator = option },
-                                label = { Text(option) },
-                            )
-                        }
-                    }
-                }
-
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = { value = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Значение") },
-                    placeholder = { Text("true, false, 25, 0") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                )
-
-                Text(
-                    text = "Например: true, false, 25 или 0",
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = canConfirm,
-                onClick = {
-                    val device = selectedDevice ?: return@TextButton
-                    val signal = selectedSignal ?: return@TextButton
-                    onConfirm(
-                        ScenarioRule(
-                            deviceId = device.id,
-                            deviceTitle = device.title.ifBlank { device.id },
-                            signal = signal,
-                            operator = if (kind == RuleKind.CONDITION) operator else null,
-                            value = value.trim(),
-                        ),
+                        text = if (isNew) "Новый сценарий" else "Редактор сценария",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 },
-            ) {
-                Text("Добавить")
-            }
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            val current = draft ?: return@IconButton
+                            persist(current.copy(name = current.name.ifBlank { "Без названия" }))
+                        },
+                        enabled = draft != null && !state.saving,
+                    ) {
+                        if (state.saving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = UjinCyan,
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = "Сохранить",
+                                tint = UjinCyan,
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+            )
         },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(24.dp),
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Отмена", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            when {
+                state.loading || draft == null -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = UjinCyan,
+                    )
+                }
+
+                else -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        OutlinedTextField(
+                            value = scenario?.name.orEmpty(),
+                            onValueChange = { value ->
+                                val current = draft ?: return@OutlinedTextField
+                                draft = current.copy(name = value)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp),
+                            label = { Text("Название сценария") },
+                            placeholder = { Text("Например, свет при протечке") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Сценарий включён",
+                                modifier = Modifier.weight(1f),
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Switch(
+                                checked = scenario?.enabled ?: true,
+                                onCheckedChange = { value ->
+                                    val current = draft ?: return@Switch
+                                    draft = current.copy(enabled = value)
+                                },
+                            )
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+
+                        ScenarioGraphBoard(
+                            nodes = nodes,
+                            edges = edges,
+                            positions = positions,
+                            onMove = { id, offset ->
+                                positions = positions.toMutableMap().apply { put(id, offset) }
+                            },
+                            onNodeClick = { id -> editTarget = id },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(horizontal = 16.dp),
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            FilledTonalButton(
+                                onClick = { addKind = RuleEditorKind.TRIGGER },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text("Триггер", fontSize = 13.sp)
+                            }
+                            FilledTonalButton(
+                                onClick = { addKind = RuleEditorKind.CONDITION },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text("Условие", fontSize = 13.sp)
+                            }
+                            FilledTonalButton(
+                                onClick = { addKind = RuleEditorKind.ACTION },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text("Действие", fontSize = 13.sp)
+                            }
+                        }
+
+                        Text(
+                            text = "Перетащите блоки, чтобы выстроить цепочку. Нажмите на блок, чтобы изменить.",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp, vertical = 8.dp),
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                        Button(
+                            onClick = {
+                                val current = draft ?: return@Button
+                                persist(current.copy(name = current.name.ifBlank { "Без названия" }))
+                            },
+                            enabled = !state.saving,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp)
+                                .height(59.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = UjinCyan,
+                                contentColor = UjinSurface,
+                            ),
+                        ) {
+                            Text(
+                                text = if (isNew) "Создать сценарий" else "Сохранить изменения",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
+                }
             }
-        },
-    )
-}
+        }
+    }
 
-@Composable
-private fun DialogLabel(text: String) {
-    Text(
-        text = text,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.Medium,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
-}
+    addKind?.let { kind ->
+        val base = draft
+        if (base != null) {
+            RuleEditorDialog(
+                kind = kind,
+                initial = when (kind) {
+                    RuleEditorKind.TRIGGER -> base.takeIf { it.hasTrigger }?.trigger?.toDraft()
+                        ?: RuleDraft()
+                    RuleEditorKind.CONDITION -> RuleDraft()
+                    RuleEditorKind.ACTION -> RuleDraft()
+                },
+                devices = state.devices,
+                declarations = state.declarations,
+                onDismiss = { addKind = null },
+                onConfirm = { ruleDraft ->
+                    val updated = when (kind) {
+                        RuleEditorKind.TRIGGER -> base.copy(
+                            trigger = RuleSpec(
+                                id = "trigger",
+                                deviceId = ruleDraft.deviceId,
+                                signal = ruleDraft.signal,
+                                operator = ruleDraft.operator,
+                                value = ruleDraft.value,
+                            ),
+                        )
+                        RuleEditorKind.CONDITION -> base.addConditionDraft(ruleDraft)
+                        RuleEditorKind.ACTION -> base.addActionDraft(ruleDraft)
+                    }
+                    draft = updated
+                    val extraId = when (kind) {
+                        RuleEditorKind.TRIGGER -> null
+                        RuleEditorKind.CONDITION -> updated.conditions.lastOrNull()?.id
+                        RuleEditorKind.ACTION -> updated.actions.lastOrNull()?.id
+                    }
+                    if (extraId != null && !positions.containsKey(extraId)) {
+                        val anchor = positions["trigger"] ?: Offset(16f, 20f)
+                        val count = positions.size
+                        positions = positions.toMutableMap().apply {
+                            put(
+                                extraId,
+                                Offset(
+                                    if (kind == RuleEditorKind.ACTION) screenWidth - 166f else anchor.x,
+                                    anchor.y + 116f * count,
+                                ),
+                            )
+                        }
+                    }
+                    addKind = null
+                },
+            )
+        }
+    }
 
-private fun signalLabel(signal: String): String = when (signal) {
-    "leak" -> "Протечка"
-    "temperature" -> "Температура"
-    "target" -> "Целевая температура"
-    "on" -> "Включение"
-    "brightness" -> "Яркость"
-    "speed" -> "Скорость"
-    "open" -> "Открытие"
-    "open_cmd" -> "Команда открытия"
-    "online" -> "Онлайн"
-    "call" -> "Вызов"
-    else -> signal
+    editTarget?.let { target ->
+        val base = draft
+        if (base != null) {
+            val condition = base.conditions.firstOrNull { it.id == target }
+            val action = base.actions.firstOrNull { it.id == target }
+            val kind = when {
+                target == "trigger" -> RuleEditorKind.TRIGGER
+                condition != null -> RuleEditorKind.CONDITION
+                else -> RuleEditorKind.ACTION
+            }
+            val initial = when {
+                condition != null -> condition.toDraft()
+                action != null -> action.toDraft()
+                else -> base.trigger.toDraft()
+            }
+            RuleEditorDialog(
+                kind = kind,
+                initial = initial,
+                devices = state.devices,
+                declarations = state.declarations,
+                onDismiss = { editTarget = null },
+                onConfirm = { ruleDraft ->
+                    val updated = when {
+                        kind == RuleEditorKind.TRIGGER -> base.copy(
+                            trigger = RuleSpec(
+                                id = "trigger",
+                                deviceId = ruleDraft.deviceId,
+                                signal = ruleDraft.signal,
+                                operator = ruleDraft.operator,
+                                value = ruleDraft.value,
+                            ),
+                        )
+                        condition != null -> base.updateConditionDraft(target, ruleDraft)
+                        else -> base.updateActionDraft(target, ruleDraft)
+                    }
+                    draft = updated
+                    editTarget = null
+                },
+                onDelete = {
+                    draft = when {
+                        kind == RuleEditorKind.TRIGGER -> base.copy(trigger = RuleSpec())
+                        condition != null -> base.removeCondition(target)
+                        else -> base.removeAction(target)
+                    }
+                    positions = positions.toMutableMap().apply { remove(target) }
+                    editTarget = null
+                },
+            )
+        }
+    }
 }
