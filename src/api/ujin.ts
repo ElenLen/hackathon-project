@@ -1,4 +1,3 @@
-// src/api/ujin.ts
 import axios from "axios";
 
 export const BASE_URL = "/api";
@@ -85,4 +84,36 @@ export async function publishSignals(
     { params: { token }, headers: { "Content-Type": "application/json" } },
   );
   if (res.data.error !== 0) throw new Error(res.data.message);
+}
+
+// ==================== АВТОРИЗАЦИЯ ====================
+export interface AuthUser {
+  user_fullname: string;
+  user_name: string;
+  user_surname: string;
+  user_phone: string;
+  token: string;
+  apartment: Array<{
+    id: string;
+    title: string;
+    complex_title: string;
+    building_address: string;
+  }>;
+}
+
+export async function authenticate(
+  login: string,
+  password: string,
+): Promise<AuthUser | null> {
+  try {
+    const res = await api.post(
+      "/auth/authenticate",
+      new URLSearchParams({ login, password }),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } },
+    );
+    if (res.data.error !== 0) return null;
+    return res.data.data.user as AuthUser;
+  } catch {
+    return null;
+  }
 }
