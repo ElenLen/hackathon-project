@@ -16,12 +16,10 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("boolean", "USE_MOCK", "true")
-        buildConfigField("String", "API_BASE", "\"http://10.0.2.2:8001/\"")
+        buildConfigField("boolean", "USE_MOCK", "false")
+        buildConfigField("String", "API_BASE", "\"http://10.0.2.2:8001/api/\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        buildConfigField("String", "API_BASE", "\"http://10.0.2.2:8001/api/\"")
     }
 
     buildTypes {
