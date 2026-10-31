@@ -2,6 +2,7 @@ package com.example.smarthome.data
 
 import com.example.smarthome.data.dto.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 
@@ -44,8 +45,24 @@ class RemoteSmartHomeRepository(private val api: ApiService) : SmartHomeReposito
 
     private fun ScenarioOut.toDefinition(): ScenarioDefinition {
         val parsed = runCatching {
-            json.decodeFromJsonElement<ScenarioDefinition>(rule)
+            json.decodeFromJsonElement<ScenarioDefinition>(normalizeRuleObject(rule))
         }.getOrNull() ?: ScenarioDefinition()
         return parsed.copy(id = id, name = name, enabled = enabled)
+    }
+
+    private fun normalizeRuleObject(rule: JsonObject): JsonObject {
+        val out = rule.toMutableMap()
+        (out["trigger"] as? JsonObject)?.let { out["trigger"] = it.withOperator() }
+        (out["conditions"] as? JsonArray)?.let { arr ->
+            out["conditions"] = JsonArray(arr.map { (it as? JsonObject)?.withOperator() ?: it })
+        }
+        return JsonObject(out)
+    }
+
+    private fun JsonObject.withOperator(): JsonObject {
+        if (containsKey("operator") || !containsKey("op")) return this
+        val out = toMutableMap()
+        out["operator"] = out.remove("op")!!
+        return JsonObject(out)
     }
 }
