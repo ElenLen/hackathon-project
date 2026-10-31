@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # extra="ignore" позволяет игнорировать переменные в .env, которых нет в этом классе
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     ujin_base_url: str = "https://api-uae-test.ujin.tech"

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from backend.db.models import get_db
+from db.models import get_db
 
 SEED_DEVICES = [
     {"id": "khikhikhakhakery_leak_01", "ujin_sn": "17048769610018002",

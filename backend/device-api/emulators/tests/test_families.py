@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core import Signal  # noqa: E402
+from emulators.core import Signal  # noqa: E402
 from devices.counter import Counter  # noqa: E402
 from devices.ventilation import Ventilation  # noqa: E402
 from devices.fire import FireDetector  # noqa: E402

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import aiosqlite
-from backend.core.config import settings
-from backend.db.models import get_db
+from core.config import settings
+from db.models import get_db
 
 async def record_signals(device_id: str, signals: list[dict]) -> int:
     SKIP = {"dt_create", "push-connect", "ver"}

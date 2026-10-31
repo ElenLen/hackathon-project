@@ -1,5 +1,5 @@
 import asyncio
-from backend.integrations.ujin_adapter import adapter
+from integrations.ujin_adapter import adapter
 
 async def main():
     row = {"sn": "khikhikhakhakery_leak_01",

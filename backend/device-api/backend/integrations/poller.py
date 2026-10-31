@@ -1,16 +1,29 @@
 from __future__ import annotations
 import asyncio
 import logging
-from backend.core.config import settings
-from backend.integrations.ujin_adapter import adapter
-from backend.services import device_service, signal_service
+from core.config import settings
+from integrations.ujin_adapter import adapter
+from services import device_service, signal_service
 
 log = logging.getLogger(__name__)
 
 async def poll_once(rule_engine=None) -> int:
     devices = await adapter.get_apartment_signals()
+    
+    # Если API вернул не список (например, строку с ошибкой или словарь), пропускаем
+    if not isinstance(devices, list):
+        if isinstance(devices, dict):
+            log.warning("API returned error object: %s", devices)
+        else:
+            log.warning("API returned unexpected type: %s (value: %s)", type(devices), devices)
+        return 0
+
     total = 0
     for d in devices:
+        # Если элемент списка не словарь, пропускаем
+        if not isinstance(d, dict):
+            continue
+            
         sn = d.get("sn")
         if not sn:
             continue
@@ -21,6 +34,8 @@ async def poll_once(rule_engine=None) -> int:
         total += n
         if rule_engine is not None:
             for s in d.get("signals", []):
+                if not isinstance(s, dict):
+                    continue
                 name = s.get("name")
                 if not name:
                     continue

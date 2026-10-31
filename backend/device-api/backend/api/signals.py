@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
-from backend.schemas.signal import SignalPoint
-from backend.services import signal_service
+from schemas.signal import SignalPoint
+from services import signal_service
 
 router = APIRouter()
 

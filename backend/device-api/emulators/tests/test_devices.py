@@ -7,7 +7,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core import CommandServer, Device, Signal  # noqa: E402
+from emulators.core import CommandServer, Device, Signal  # noqa: E402
 from ujin_client import UjinClient  # noqa: E402
 from devices import REGISTRY  # noqa: E402
 from devices.leak_sensor import LeakSensor  # noqa: E402

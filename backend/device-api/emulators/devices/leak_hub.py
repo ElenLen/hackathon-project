@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections import deque
 
-from core import Device, Signal
+from emulators.core import Device, Signal
 
 
 class InternalSensor:

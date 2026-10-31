@@ -1,8 +1,8 @@
 from __future__ import annotations
 import asyncio, json, logging, time
 from typing import Any
-from backend.db.models import get_db
-from backend.integrations.ujin_adapter import adapter
+from db.models import get_db
+from integrations.ujin_adapter import adapter
 
 log = logging.getLogger(__name__)
 

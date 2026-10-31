@@ -1,7 +1,7 @@
 """Лифт: очередь вызовов, движение этаж-за-этажом, события floor_changed, авария."""
 from __future__ import annotations
 
-from core import Device, Signal
+from emulators.core import Device, Signal
 
 STOP, UP, DOWN = 0, 1, 2
 DOOR_TICKS = 2
