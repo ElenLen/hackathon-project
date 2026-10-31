@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """Ядро эмулятора: сигналы Ujin, конечный автомат устройства, приём команд."""
 from __future__ import annotations
 
@@ -308,3 +309,49 @@ def self_dashboard(dev: Device) -> str:
             "<table border=1 cellpadding=4><tr><th>title</th><th>signal</th>"
             "<th>value</th><th>mgmt</th></tr>" + "".join(rows) +
             "</table>" + form + "</body></html>")
+=======
+import asyncio
+import json
+import logging
+from typing import Dict, Any, Optional
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("DeviceEmulator")
+
+class BaseDevice:
+    def __init__(self, device_id: str, device_type: str):
+        self.device_id = device_id
+        self.device_type = device_type
+        self.state: Dict[str, Any] = {
+            "power": False,
+            "status": "online"
+        }
+
+    def update_state(self, key: str, value: Any) -> None:
+        self.state[key] = value
+        logger.info(f"[{self.device_id}] State updated: {key} = {value}")
+
+    def get_telemetry(self) -> Dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "type": self.device_type,
+            "state": self.state
+        }
+
+    async def process_command(self, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        if command == "set_power":
+            self.update_state("power", payload.get("power", False))
+        return self.get_telemetry()
+
+class SensorDevice(BaseDevice):
+    def __init__(self, device_id: str):
+        super().__init__(device_id, "sensor")
+        self.state["temperature"] = 22.5
+        self.state["humidity"] = 45.0
+
+    async def step(self):
+        # Эмуляция незначительных колебаний показаний
+        import random
+        self.state["temperature"] += round(random.uniform(-0.5, 0.5), 2)
+        self.state["humidity"] += round(random.uniform(-1.0, 1.0), 2)
+>>>>>>> d58725f (добавила новые файлы)

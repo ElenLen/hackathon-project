@@ -44,7 +44,11 @@ class LeakTest(unittest.TestCase):
         self.assertEqual(published_map(c).get("leak"), 1)
         d.handle_recv({"recv": [{"command": "management", "id": "1",
                                  "self_test": 1}]})
+<<<<<<< HEAD
         d.step()
+=======
+        d.step()
+>>>>>>> d58725f (добавила новые файлы)
         self.assertEqual(published_map(c).get("leak"), 0.001)  # wire 0->0.001 (мина №1)
 
     def test_battery_drains(self):
@@ -66,7 +70,11 @@ class BarrierTest(unittest.TestCase):
         return c, d, state
 
     def test_auto_close_after_hold(self):
+<<<<<<< HEAD
         _, d, state = self._open_cycle()
+=======
+        _, d, state = self._open_cycle()
+>>>>>>> d58725f (добавила новые файлы)
         self.assertEqual(state, 0.001)  # wire 0->0.001 (мина №1)
         self.assertEqual(d.signals["cycles"].value, 1)
 
@@ -340,4 +348,8 @@ class TaskLoopTest(unittest.TestCase):
         r = c.get_device_info("ust", "1")
         self.assertEqual(r["error"], 0)
         self.assertEqual(c.calls[-1]["path"],
+<<<<<<< HEAD
                          "/api/bmsdevice/get-device-info/")
+=======
+                         "/api/bmsdevice/get-device-info/")
+>>>>>>> d58725f (добавила новые файлы)
