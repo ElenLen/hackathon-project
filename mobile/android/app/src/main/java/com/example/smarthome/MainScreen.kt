@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.smarthome.screens.devices.DevicesScreen
 import com.example.smarthome.screens.home.HomeScreen
 import com.example.smarthome.screens.profile.ProfileScreen
+import com.example.smarthome.screens.scenarios.ScenarioEditorScreen
 import com.example.smarthome.screens.scenarios.ScenariosScreen
 import com.example.smarthome.ui.theme.UjinCyan
 import com.example.smarthome.ui.theme.UjinSurface
@@ -49,6 +50,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val showBottomBar = currentRoute == null || bottomTabs.any { it.route == currentRoute }
 
     val navigateToTab: (String) -> Unit = { route ->
         navController.navigate(route) {
@@ -63,34 +65,36 @@ fun MainScreen() {
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            NavigationBar(
-                containerColor = UjinSurface,
-                tonalElevation = 0.dp,
-            ) {
-                bottomTabs.forEach { tab ->
-                    NavigationBarItem(
-                        selected = currentRoute == tab.route,
-                        onClick = { navigateToTab(tab.route) },
-                        icon = {
-                            Icon(
-                                imageVector = tab.icon,
-                                contentDescription = tab.label,
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = tab.label,
-                                fontSize = 11.sp,
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = UjinSurface,
-                            selectedTextColor = UjinCyan,
-                            indicatorColor = UjinCyan,
-                            unselectedIconColor = Color(0xFF8B949E),
-                            unselectedTextColor = Color(0xFF8B949E),
-                        ),
-                    )
+            if (showBottomBar) {
+                NavigationBar(
+                    containerColor = UjinSurface,
+                    tonalElevation = 0.dp,
+                ) {
+                    bottomTabs.forEach { tab ->
+                        NavigationBarItem(
+                            selected = currentRoute == tab.route,
+                            onClick = { navigateToTab(tab.route) },
+                            icon = {
+                                Icon(
+                                    imageVector = tab.icon,
+                                    contentDescription = tab.label,
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = tab.label,
+                                    fontSize = 11.sp,
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = UjinSurface,
+                                selectedTextColor = UjinCyan,
+                                indicatorColor = UjinCyan,
+                                unselectedIconColor = Color(0xFF8B949E),
+                                unselectedTextColor = Color(0xFF8B949E),
+                            ),
+                        )
+                    }
                 }
             }
         },
@@ -106,7 +110,17 @@ fun MainScreen() {
                 )
             }
             composable("devices") { DevicesScreen() }
-            composable("scenarios") { ScenariosScreen() }
+            composable("scenarios") {
+                ScenariosScreen(
+                    onAddScenario = { navController.navigate("scenario_editor") },
+                )
+            }
+            composable("scenario_editor") {
+                ScenarioEditorScreen(
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
             composable("profile") { ProfileScreen() }
         }
     }
