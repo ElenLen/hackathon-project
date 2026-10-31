@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.smarthome.MainScreen
 import com.example.smarthome.screens.auth.LoginScreen
 import com.example.smarthome.screens.auth.OtpScreen
 import com.example.smarthome.screens.auth.RegisterScreen
 import com.example.smarthome.screens.auth.SplashScreen
-import com.example.smarthome.screens.home.HomeScreen
 
 @Composable
 fun NavGraph() {
@@ -46,21 +46,16 @@ fun NavGraph() {
                 onBackClick = { nav.popBackStack() }, // Возврат на ввод номера
                 onLoginSuccess = {
                     // При успехе переходим на главный экран и очищаем стек
-                    nav.navigate("home") {
+                    nav.navigate("main") {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
             )
         }
 
-        // 5. Главный экран (существующий)
-        composable("home") {
-            HomeScreen(
-                onDeviceClick = { id -> nav.navigate("device/$id") },
-                onScenariosClick = { nav.navigate("scenarios") },
-            )
+        // 5. Главный экран с нижней навигацией
+        composable("main") {
+            MainScreen()
         }
-        
-        // Здесь позже добавим "device/{id}" и "scenarios"
     }
 }

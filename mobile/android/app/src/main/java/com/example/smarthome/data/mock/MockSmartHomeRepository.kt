@@ -32,12 +32,35 @@ class MockSmartHomeRepository : SmartHomeRepository {
             id = "dev-4", title = "Вентиляция", family = "ventilation",
             lastValues = mapOf("speed" to JsonPrimitive(30)),
         ),
+        "dev-5" to DeviceOut(
+            id = "dev-5", title = "Входная дверь", family = "door",
+            lastValues = mapOf(
+                "open" to JsonPrimitive(false),
+                "online" to JsonPrimitive(true),
+            ),
+        ),
+        "dev-6" to DeviceOut(
+            id = "dev-6", title = "Домофон", family = "intercom",
+            lastValues = mapOf(
+                "call" to JsonPrimitive(false),
+                "online" to JsonPrimitive(true),
+            ),
+        ),
+        "dev-7" to DeviceOut(
+            id = "dev-7", title = "Шлагбаум", family = "barrier",
+            lastValues = mapOf(
+                "open_cmd" to JsonPrimitive(0),
+                "online" to JsonPrimitive(true),
+            ),
+        ),
     )
 
     private val scenarios = mutableMapOf<String, ScenarioOut>(
         "sc-1" to ScenarioOut(id = "sc-1", name = "Протечка → перекрыть воду", enabled = true),
         "sc-2" to ScenarioOut(id = "sc-2", name = "Ночной режим (свет 20%)", enabled = false),
-        "sc-3" to ScenarioOut(id = "sc-3", name = "Ушел из дома", enabled = true),
+        "sc-3" to ScenarioOut(id = "sc-3", name = "Ушёл из дома", enabled = true),
+        "sc-4" to ScenarioOut(id = "sc-4", name = "Доброе утро", enabled = true),
+        "sc-5" to ScenarioOut(id = "sc-5", name = "Экономия энергии", enabled = false),
     )
 
     override suspend fun getDevices(): List<DeviceOut> {

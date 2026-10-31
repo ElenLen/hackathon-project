@@ -15,6 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smarthome.ui.theme.UjinDarkGray
 import com.example.smarthome.ui.theme.UjinLightGray
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.smarthome.R
+import androidx.compose.ui.draw.scale
 
 @Composable
 fun RegisterScreen(onBackClick: () -> Unit) {
