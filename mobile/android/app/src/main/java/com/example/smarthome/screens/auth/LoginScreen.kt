@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import com.example.smarthome.R
 import com.example.smarthome.ui.theme.UjinDarkGray
 import com.example.smarthome.ui.theme.UjinLightGray
-import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(
@@ -33,12 +32,6 @@ fun LoginScreen(
 ) {
     var phoneNumber by remember { mutableStateOf("") }
     var isAgreed by remember { mutableStateOf(false) }
-
-    // Имитация автозаполнения
-    LaunchedEffect(Unit) {
-        delay(1000) // Ждем 1 секунду
-        phoneNumber = "999-000-00-00"
-    }
 
     Column(
         modifier = Modifier
