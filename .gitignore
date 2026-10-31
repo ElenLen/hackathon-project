@@ -25,27 +25,19 @@ lerna-debug.log*
 
 # Переменные окружения (ВАЖНО!)
 .env
-.env.*
 .env.local
 .env.*.local
-!.env.example
 
 # Токены и пароли (критично для хакатона — п.7 «минного поля»)
 token.txt
 доступы.json
 
-# Python
+.env
+*.sqlite3
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.venv/
-venv/
-env/
-ENV/
+*.pyc
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
+venv/
+node_modules/
+dist/
+.DS_Store
