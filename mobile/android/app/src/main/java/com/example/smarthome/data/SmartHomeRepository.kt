@@ -9,6 +9,7 @@ interface SmartHomeRepository {
     suspend fun getDeclaration(deviceId: String): List<SignalDeclaration>
     suspend fun getSignals(deviceId: String, name: String?, limit: Int = 100): List<SignalPoint>
     suspend fun sendCommand(command: CommandIn): JsonObject
+    suspend fun addDevice(title: String, family: String, apartmentId: String = ""): DeviceOut
 
     suspend fun getScenarios(): List<ScenarioOut>
     suspend fun getScenarioDefinitions(): List<ScenarioDefinition>

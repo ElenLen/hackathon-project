@@ -42,9 +42,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +63,6 @@ import com.example.smarthome.ui.theme.UjinCyan
 import com.example.smarthome.ui.theme.UjinGreen
 import com.example.smarthome.ui.theme.UjinRed
 import com.example.smarthome.ui.theme.UjinSurface
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
@@ -72,7 +73,15 @@ fun DevicesScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.message) {
+        state.message?.let { message ->
+            showAddDialog = false
+            snackbarHostState.showSnackbar(message)
+            viewModel.consumeMessage()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -153,11 +162,7 @@ fun DevicesScreen(
             }
 
             Button(
-                onClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Добавление устройства скоро появится")
-                    }
-                },
+                onClick = { showAddDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 25.dp)
@@ -188,6 +193,18 @@ fun DevicesScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 84.dp),
+        )
+    }
+
+    if (showAddDialog) {
+        AddDeviceDialog(
+            saving = state.saving,
+            error = state.error,
+            onDismiss = {
+                showAddDialog = false
+                viewModel.consumeError()
+            },
+            onConfirm = { title, family -> viewModel.addDevice(title, family) },
         )
     }
 }
@@ -286,7 +303,9 @@ private fun DeviceCard(
     }
 }
 
-private fun DeviceOut.icon(): ImageVector = when (family.lowercase()) {
+private fun DeviceOut.icon(): ImageVector = familyIconFor(family)
+
+fun familyIconFor(family: String): ImageVector = when (family.lowercase()) {
     "leak", "water", "flood" -> Icons.Filled.WaterDrop
     "thermostat", "climate" -> Icons.Filled.Thermostat
     "light", "lamp" -> Icons.Filled.Lightbulb

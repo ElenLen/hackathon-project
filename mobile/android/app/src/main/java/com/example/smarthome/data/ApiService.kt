@@ -1,6 +1,7 @@
 package com.example.smarthome.data
 
 import com.example.smarthome.data.dto.CommandIn
+import com.example.smarthome.data.dto.DeviceIn
 import com.example.smarthome.data.dto.DeviceOut
 import com.example.smarthome.data.dto.ScenarioDefinition
 import com.example.smarthome.data.dto.ScenarioOut
@@ -39,6 +40,9 @@ interface ApiService {
 
     @POST("commands")
     suspend fun sendCommand(@Body command: CommandIn): JsonObject
+
+    @POST("devices")
+    suspend fun addDevice(@Body device: DeviceIn): DeviceOut
 
     @GET("scenarios")
     suspend fun getScenarios(): List<ScenarioOut>

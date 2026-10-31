@@ -158,6 +158,23 @@ class MockSmartHomeRepository : SmartHomeRepository {
         return devices.values.toList()
     }
 
+    override suspend fun addDevice(title: String, family: String, apartmentId: String): DeviceOut {
+        delay(300)
+        val normalizedFamily = family.lowercase()
+        val index = devices.size + 1
+        val device = DeviceOut(
+            id = "dev-$index",
+            ujinSn = "ujin-${1000 + index}",
+            title = title.ifBlank { "Новое устройство" },
+            family = normalizedFamily,
+            apartmentId = apartmentId.ifBlank { "apt-1" },
+            lastValues = emptyMap(),
+            lastSeenAt = null,
+        )
+        devices[device.id] = device
+        return device
+    }
+
     override suspend fun getDevice(id: String): DeviceOut {
         delay(200)
         return devices[id] ?: error("Устройство $id не найдено")

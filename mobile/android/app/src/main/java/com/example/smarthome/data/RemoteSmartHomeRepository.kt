@@ -18,6 +18,8 @@ class RemoteSmartHomeRepository(private val api: ApiService) : SmartHomeReposito
     override suspend fun getSignals(deviceId: String, name: String?, limit: Int) =
         api.getSignals(deviceId, name, limit)
     override suspend fun sendCommand(command: CommandIn) = api.sendCommand(command)
+    override suspend fun addDevice(title: String, family: String, apartmentId: String) =
+        api.addDevice(DeviceIn(title = title, family = family, apartmentId = apartmentId))
 
     override suspend fun getScenarios() = api.getScenarios()
 

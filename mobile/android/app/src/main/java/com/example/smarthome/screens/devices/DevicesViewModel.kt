@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 data class DevicesUiState(
     val devices: List<DeviceOut> = emptyList(),
     val loading: Boolean = true,
+    val saving: Boolean = false,
     val error: String? = null,
+    val message: String? = null,
 )
 
 class DevicesViewModel : ViewModel() {
@@ -39,5 +41,40 @@ class DevicesViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun addDevice(title: String, family: String) {
+        if (_state.value.saving) return
+        viewModelScope.launch {
+            _state.update { it.copy(saving = true, error = null) }
+            try {
+                val device = RepositoryProvider.repository.addDevice(
+                    title = title.trim(),
+                    family = family,
+                )
+                _state.update { current ->
+                    current.copy(
+                        devices = current.devices + device,
+                        saving = false,
+                        message = "Устройство «${device.title}» добавлено",
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        saving = false,
+                        error = e.message ?: "Не удалось добавить устройство",
+                    )
+                }
+            }
+        }
+    }
+
+    fun consumeMessage() {
+        _state.update { it.copy(message = null) }
+    }
+
+    fun consumeError() {
+        _state.update { it.copy(error = null) }
     }
 }
