@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.lifecycle.lifecycleScope
 import com.example.smarthome.data.ApiClient
+import com.example.smarthome.ui.theme.UjinTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -22,6 +23,10 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        setContent { Text("Ujin — see Logcat") }
+        setContent {
+            UjinTheme {
+                Text("Ujin — see Logcat")
+            }
+        }
     }
 }
