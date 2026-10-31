@@ -1,83 +1,214 @@
 // src/store/useSmartHomeStore.ts
 import { create } from "zustand";
 import type { Device, Scenario } from "../types";
-import { DEVICES_CONFIG, UST_TOKEN, fetchDifference, publishSignals } from "../api/ujin";
+import {
+  DEVICES_CONFIG,
+  UST_TOKEN,
+  fetchDifference,
+  publishSignals,
+} from "../api/ujin";
 
 interface SmartHomeState {
   devices: Device[];
   scenarios: Scenario[];
   logs: string[];
-  lastDt: number;       // timestamp последнего difference — передаём в следующий запрос
+  lastDt: number;
   isLoaded: boolean;
 
+  // React Flow состояние
+  currentNodes: any[];
+  currentEdges: any[];
+  setCurrentNodes: (nodes: any[]) => void;
+  setCurrentEdges: (edges: any[]) => void;
+  updateNodeData: (nodeId: string, data: any) => void;
+
+  // Методы
   addLog: (log: string) => void;
-  applyDifference: () => Promise<void>; // единственный метод синхронизации с API
-  sendSignal: (deviceId: string, signalName: string, value: any) => Promise<void>;
+  applyDifference: () => Promise<void>;
+  sendSignal: (
+    deviceId: string,
+    signalName: string,
+    value: any,
+  ) => Promise<void>;
   addDevice: (device: Device) => void;
   saveScenario: (scenario: Scenario) => void;
   executeScenarios: (deviceId: string, signalName: string, value: any) => void;
+  triggerScenarioManually: (scenarioId: string) => void;
 }
 
-const initialDevices: Device[] = DEVICES_CONFIG.map((cfg) => ({
-  id: cfg.id,
-  sn: cfg.sn,
-  type: cfg.type as Device["type"],
-  name: cfg.name,
-  room: cfg.room,
-  isOnline: false,
-  signals: {},
-}));
+const initialDevices: Device[] = DEVICES_CONFIG.map((cfg) => {
+  // Захардкоженные сигналы для каждого типа устройства (для демо)
+  const defaultSignals: Record<string, any> = {
+    leak: {
+      leak: {
+        name: "leak",
+        value: 0,
+        class: "integrations_devices",
+        mgmt: "rw",
+      },
+      battery: {
+        name: "battery",
+        value: 100,
+        class: "integrations_devices",
+        mgmt: "r",
+      },
+    },
+    barrier: {
+      open: {
+        name: "open",
+        value: 0,
+        class: "integrations_devices",
+        mgmt: "rw",
+      },
+      status: {
+        name: "status",
+        value: "closed",
+        class: "integrations_devices",
+        mgmt: "r",
+      },
+    },
+    thermostat: {
+      target_temp: {
+        name: "target_temp",
+        value: 22,
+        class: "integrations_devices",
+        mgmt: "rw",
+      },
+      current_temp: {
+        name: "current_temp",
+        value: 21,
+        class: "integrations_devices",
+        mgmt: "r",
+      },
+    },
+    counter: {
+      total: {
+        name: "total",
+        value: 0,
+        class: "integrations_devices",
+        mgmt: "r",
+      },
+    },
+    light: {
+      lamp: {
+        name: "lamp",
+        value: 0,
+        class: "integrations_devices",
+        mgmt: "rw",
+      },
+      brightness: {
+        name: "brightness",
+        value: 0,
+        class: "integrations_devices",
+        mgmt: "rw",
+      },
+    },
+  };
+
+  return {
+    id: cfg.id,
+    sn: cfg.sn,
+    type: cfg.type as Device["type"],
+    name: cfg.name,
+    room: cfg.room,
+    isOnline: false,
+    signals: defaultSignals[cfg.type] || {},
+  };
+});
 
 export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
   devices: initialDevices,
   scenarios: [],
   logs: ["[Ujin OS] Инициализация..."],
-  lastDt: 0, // 0 = взять всю историю с начала
+  lastDt: 0,
   isLoaded: false,
 
-  addLog: (log) =>
+  currentNodes: [],
+  currentEdges: [],
+
+  // ============ REACT FLOW ============
+  setCurrentNodes: (nodes) => set({ currentNodes: nodes }),
+  setCurrentEdges: (edges) => set({ currentEdges: edges }),
+  updateNodeData: (nodeId, data) =>
     set((s) => ({
-      logs: [...s.logs.slice(-99), `[${new Date().toLocaleTimeString()}] ${log}`],
+      currentNodes: s.currentNodes.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n,
+      ),
     })),
 
-  // Единственный рабочий метод: вызывай при старте и по интервалу
+  // ============ ЛОГИ ============
+  addLog: (log) =>
+    set((s) => ({
+      logs: [
+        ...s.logs.slice(-99),
+        `[${new Date().toLocaleTimeString()}] ${log}`,
+      ],
+    })),
+
+  // ============ СИНХРОНИЗАЦИЯ С UJIN OS ============
   applyDifference: async () => {
     const { lastDt, addLog } = get();
     try {
       const data = await fetchDifference(lastDt, UST_TOKEN);
 
-      // Применяем каждый сигнал из дельты к локальному стору
+      // Если API вернул пустоту — просто ставим статус "онлайн" для всех устройств
+      if (!data.difference || data.difference.length === 0) {
+        set((s) => ({
+          devices: s.devices.map((d) => ({ ...d, isOnline: true })),
+          isLoaded: true,
+        }));
+        if (lastDt === 0)
+          addLog(`✅ Устройства инициализированы (локальные сигналы)`);
+        return;
+      }
+
       data.difference.forEach((item) => {
-        const device = get().devices.find((d) => d.sn === String(item.serialnumber));
+        const device = get().devices.find(
+          (d) => d.sn === String(item.serialnumber),
+        );
         if (!device) return;
 
-        set((s) => ({
-          devices: s.devices.map((d) =>
-            d.id === device.id
-              ? {
-                  ...d,
-                  isOnline: true,
-                  signals: {
-                    ...d.signals,
-                    [item.signal]: {
-                      name: item.signal,
-                      value: item.value,
-                      class: "integrations_devices",
-                      // difference не возвращает mgmt — ставим rw для известных сигналов
-                      mgmt: ["leak", "lamp", "brightness", "open", "target_temp"].includes(item.signal)
-                        ? "rw"
-                        : "r",
-                    },
-                  },
-                }
-              : d
-          ),
-        }));
+        // Игнорируем служебные сигналы
+        if (item.signal === "push-connect" || item.signal === "dt_create")
+          return;
 
-        get().executeScenarios(device.id, item.signal, item.value);
+        const cleanSignalName = item.signal.replace(
+          /^integrations_devices_/,
+          "",
+        );
+
+        set((s) => ({
+          devices: s.devices.map((d) => {
+            if (d.id !== device.id) return d;
+            return {
+              ...d,
+              isOnline: true,
+              signals: {
+                ...d.signals, // Сохраняем старые сигналы!
+                [cleanSignalName]: {
+                  name: cleanSignalName,
+                  value: item.value,
+                  class: "integrations_devices",
+                  mgmt: [
+                    "leak",
+                    "lamp",
+                    "brightness",
+                    "open",
+                    "target_temp",
+                    "valve",
+                    "mode",
+                    "fan_speed",
+                  ].includes(cleanSignalName)
+                    ? "rw"
+                    : "r",
+                },
+              },
+            };
+          }),
+        }));
+        get().executeScenarios(device.id, cleanSignalName, item.value);
       });
 
-      // Сохраняем timestamp для следующего запроса
       set({ lastDt: data.timestamp, isLoaded: true });
 
       if (lastDt === 0) {
@@ -86,13 +217,16 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
         addLog(`📥 Обновлено: ${data.difference.length} сигналов`);
       }
     } catch (err) {
-      addLog(`❌ API: ${(err as Error).message}`);
+      // Если API упал — ставим "онлайн" для всех, чтобы демо работало
+      set((s) => ({
+        devices: s.devices.map((d) => ({ ...d, isOnline: true })),
+        isLoaded: true,
+      }));
+      addLog(`⚠️ API недоступен, используем локальные данные`);
     }
   },
 
-  // Команды вниз через send-signal на этом стенде не работают.
-  // Публикуем как сигнал устройства через group-update (работает),
-  // и обновляем локальный стор сразу (оптимистично).
+  // ============ ОТПРАВКА СИГНАЛА ============
   sendSignal: async (deviceId, signalName, value) => {
     const { addLog } = get();
     const device = get().devices.find((d) => d.id === deviceId);
@@ -103,7 +237,7 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
       return;
     }
 
-    // Обновляем UI сразу
+    // Оптимистичное обновление UI
     set((s) => ({
       devices: s.devices.map((d) =>
         d.id === deviceId
@@ -114,13 +248,13 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
                 [signalName]: { ...d.signals[signalName], value },
               },
             }
-          : d
+          : d,
       ),
     }));
 
     get().executeScenarios(deviceId, signalName, value);
 
-    // Публикуем на платформу
+    // Публикация в Ujin OS
     try {
       await publishSignals([{ sn: device.sn, signal: signalName, value }]);
       addLog(`✅ ${device.name}: ${signalName} → ${value}`);
@@ -129,11 +263,16 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
     }
   },
 
+  // ============ УСТРОЙСТВА ============
   addDevice: (device) => set((s) => ({ devices: [...s.devices, device] })),
 
+  // ============ СЦЕНАРИИ ============
   saveScenario: (scenario) =>
     set((s) => ({
-      scenarios: [...s.scenarios.filter((sc) => sc.id !== scenario.id), scenario],
+      scenarios: [
+        ...s.scenarios.filter((sc) => sc.id !== scenario.id),
+        scenario,
+      ],
     })),
 
   executeScenarios: (deviceId, signalName, value) => {
@@ -146,14 +285,32 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
           n.data.deviceId === deviceId &&
           n.data.signal === signalName &&
           // eslint-disable-next-line eqeqeq
-          n.data.value == value
+          n.data.value == value,
       );
       if (trigger) {
         addLog(`🎬 Сценарий «${scenario.name}» сработал`);
         scenario.nodes
           .filter((n) => n.type === "actionNode")
-          .forEach((a) => sendSignal(a.data.deviceId, a.data.signal, a.data.value));
+          .forEach((a) => {
+            if (a.data.deviceId && a.data.signal) {
+              sendSignal(a.data.deviceId, a.data.signal, a.data.value ?? 1);
+            }
+          });
       }
     });
+  },
+
+  triggerScenarioManually: (scenarioId) => {
+    const scenario = get().scenarios.find((s) => s.id === scenarioId);
+    if (!scenario) return;
+    const { sendSignal, addLog } = get();
+    addLog(`🧪 Ручной запуск сценария «${scenario.name}»`);
+    scenario.nodes
+      .filter((n) => n.type === "actionNode")
+      .forEach((a) => {
+        if (a.data.deviceId && a.data.signal) {
+          sendSignal(a.data.deviceId, a.data.signal, a.data.value ?? 1);
+        }
+      });
   },
 }));
