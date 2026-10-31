@@ -13,47 +13,40 @@ import com.example.smarthome.screens.auth.SplashScreen
 @Composable
 fun NavGraph() {
     val nav = rememberNavController()
-    
-    // Стартовая точка теперь "splash"
+
     NavHost(navController = nav, startDestination = "splash") {
-        
-        // 1. Стартовый экран
         composable("splash") {
             SplashScreen(
                 onLoginClick = { nav.navigate("login") },
-                onRegisterClick = { nav.navigate("register") }
+                onRegisterClick = { nav.navigate("register") },
             )
         }
-        
-        // 2. Экран Регистрации
+
         composable("register") {
             RegisterScreen(
-                onBackClick = { nav.popBackStack() } // Возврат на старт
+                onBackClick = { nav.popBackStack() },
+                onCodeSent = { nav.navigate("otp") },
             )
         }
 
-        // 3. Экран Авторизации (номер телефона)
         composable("login") {
             LoginScreen(
-                onBackClick = { nav.popBackStack() }, // Возврат на старт
-                onCodeSent = { nav.navigate("otp") } // Переход на ввод кода
+                onBackClick = { nav.popBackStack() },
+                onCodeSent = { nav.navigate("otp") },
             )
         }
 
-        // 4. Экран Ввода Кода (OTP)
         composable("otp") {
             OtpScreen(
-                onBackClick = { nav.popBackStack() }, // Возврат на ввод номера
+                onBackClick = { nav.popBackStack() },
                 onLoginSuccess = {
-                    // При успехе переходим на главный экран и очищаем стек
                     nav.navigate("main") {
                         popUpTo("splash") { inclusive = true }
                     }
-                }
+                },
             )
         }
 
-        // 5. Главный экран с нижней навигацией
         composable("main") {
             MainScreen(
                 onLogout = {

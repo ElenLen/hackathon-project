@@ -45,6 +45,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.smarthome.ui.theme.ThemeSettings
 import com.example.smarthome.ui.theme.UjinCyan
 
+private const val PROFILE_NAME = "Гость"
+private const val PROFILE_ADDRESS = "Адрес не указан"
+
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
@@ -83,7 +86,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = "Светлана",
+                text = PROFILE_NAME,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -100,7 +103,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(20.dp))
 
             AddressCard(
-                address = "Здание N 9/1, кв. 1",
+                address = PROFILE_ADDRESS,
             )
 
             Spacer(Modifier.height(8.dp))
