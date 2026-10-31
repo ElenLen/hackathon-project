@@ -3,18 +3,23 @@
 На UAE-стенде публикации в Ujin (group-update-device-signal) не сохраняются
 (blockers R-31/R-32/R-33). Поэтому данные пишем в свою БД здесь, а Ujin
 вызываем параллельно (error=0), чтобы сохранить реализм.
+
+Дополнительно: после записи вызываем rule_engine.on_signal, чтобы сценарии
+срабатывали на сигналы, пришедшие через ingest (иначе они реагируют только
+на поллер, который на UAE не видит этих сигналов).
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from backend.services import signal_service, device_service
+from backend.services.rule_engine import rule_engine
 from backend.integrations.ujin_adapter import adapter
 
 router = APIRouter()
 
 
 class SignalIn(BaseModel):
-    sn: str              # ujin_sn
-    name: str            # короткое имя сигнала, напр. "leak"
+    sn: str
+    name: str
     value: float | int | str
 
 
@@ -35,7 +40,6 @@ async def ingest(payload: SignalsIn):
             device_id, [{"name": s.name, "value": s.value}]
         )
         written += n
-        # параллельно публикуем в Ujin (для реализма, error=0)
         try:
             row = {"sn": device_id, "s": f"integrations_devices_{s.name}",
                    "v": 0.001 if s.value == 0 else s.value,
@@ -43,4 +47,8 @@ async def ingest(payload: SignalsIn):
             await adapter.publish([row])
         except Exception as e:
             errors.append(f"publish {s.name}: {e}")
+        try:
+            await rule_engine.on_signal(device_id, s.name, s.value)
+        except Exception as e:
+            errors.append(f"rule_engine {s.name}: {e}")
     return {"written": written, "errors": errors}
