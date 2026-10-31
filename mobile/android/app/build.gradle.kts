@@ -1,19 +1,20 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)   // ← добавить плагин в libs.versions.toml
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.hackathon.ujinapp"
-    compileSdk = 34
+    namespace = "com.example.smarthome"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.hackathon.ujinapp"
-        minSdk = 26
-        targetSdk = 34
+        applicationId = "com.example.smarthome"
+        minSdk = 24
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE", "\"http://10.0.2.2:8001/api/\"")
@@ -28,6 +29,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -35,6 +37,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -45,7 +48,7 @@ android {
 }
 
 dependencies {
-    // Compose
+    // Compose BOM
     implementation(platform("androidx.compose:compose-bom:2024.09.03"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -54,11 +57,18 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // Activity + ViewModel + Nav
+    // Activity / Lifecycle / Nav
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.navigation:navigation-compose:2.8.1")
+
+    // Core / AppCompat (оставляем, не мешает)
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
 
     // Network
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
@@ -72,4 +82,6 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
 
     testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }

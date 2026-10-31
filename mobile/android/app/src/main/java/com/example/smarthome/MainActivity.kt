@@ -1,20 +1,27 @@
 package com.example.smarthome
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material3.Text
+import androidx.lifecycle.lifecycleScope
+import com.example.smarthome.data.ApiClient
+import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        lifecycleScope.launch {
+            try {
+                val devices = ApiClient.api.getDevices()
+                Log.d("API", "devices=${devices.size}: ${devices.map { it.id }}")
+            } catch (e: Exception) {
+                Log.e("API", "FAILED: ${e.message}", e)
+            }
         }
+
+        setContent { Text("Ujin — see Logcat") }
     }
 }
