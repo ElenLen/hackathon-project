@@ -85,7 +85,9 @@ export default function Dashboard() {
                 const Icon = ICONS[device.type] || Lightbulb;
                 const isAlert =
                   device.signals.leak?.value === 1 ||
-                  device.signals.leak?.value === "1";
+                  device.signals.leak?.value === "1" ||
+                  device.signals.open?.value === 1 ||
+                  device.signals.open?.value === "1";
                 return (
                   <div
                     key={device.id}
@@ -100,13 +102,13 @@ export default function Dashboard() {
                     <div className="flex-1">
                       <div className="font-medium text-sm">{device.name}</div>
                       <div className="text-xs text-slate-400">
-                        {!device.isOnline
+                        {Object.keys(device.signals).length === 0
                           ? "Ожидание данных..."
                           : isAlert
                             ? "⚠️ Тревога!"
                             : Object.keys(device.signals).length === 0
                               ? "Нет сигналов"
-                              : `${Object.keys(device.signals).length} сигналов`}
+                              : `${Object.keys(device.signals).length} сигнала`}
                       </div>
                     </div>
                     {!device.isOnline && (
@@ -175,21 +177,42 @@ function DeviceModal({
                 </span>
               </div>
               {signal.mgmt === "rw" ? (
-                <button
-                  disabled={pending === name}
-                  onClick={() => toggle(name, signal.value)}
-                  className={`w-full py-2 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 ${
-                    signal.value === 1 || signal.value === "1"
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-green-600 hover:bg-green-700"
-                  }`}
-                >
-                  {pending === name
-                    ? "Отправка..."
-                    : signal.value === 1 || signal.value === "1"
-                      ? `Выключить (${signal.value})`
-                      : `Включить (${signal.value})`}
-                </button>
+                signal.name === "target_temp" ||
+                signal.name === "brightness" ? (
+                  // Слайдер для числовых значений
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min={0}
+                      max={signal.name === "target_temp" ? 35 : 100}
+                      value={Number(signal.value) || 0}
+                      onChange={(e) =>
+                        onSend(device.id, name, Number(e.target.value))
+                      }
+                      className="flex-1"
+                    />
+                    <span className="text-sm font-mono text-white w-12 text-right">
+                      {signal.value}
+                    </span>
+                  </div>
+                ) : (
+                  // Кнопка для булевых
+                  <button
+                    disabled={pending === name}
+                    onClick={() => toggle(name, signal.value)}
+                    className={`w-full py-2 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 ${
+                      signal.value === 1 || signal.value === "1"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    {pending === name
+                      ? "Отправка..."
+                      : signal.value === 1 || signal.value === "1"
+                        ? `Выключить (${signal.value})`
+                        : `Включить (${signal.value})`}
+                  </button>
+                )
               ) : (
                 <div className="text-slate-400 text-sm">
                   Значение:{" "}

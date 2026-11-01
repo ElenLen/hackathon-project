@@ -82,7 +82,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               type="text"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
-              placeholder="79908724352"
+              placeholder="12345678912"
               required
               autoComplete="username"
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"

@@ -153,13 +153,21 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
 
       // Если API вернул пустоту — просто ставим статус "онлайн" для всех устройств
       if (!data.difference || data.difference.length === 0) {
+        // 1. Помечаем ВСЕ устройства как онлайн (чтобы демо работало)
         set((s) => ({
           devices: s.devices.map((d) => ({ ...d, isOnline: true })),
           isLoaded: true,
         }));
-        if (lastDt === 0)
-          addLog(`✅ Устройства инициализированы (локальные сигналы)`);
-        return;
+        // if (lastDt === 0)
+        //   addLog(`✅ Устройства инициализированы (локальные сигналы)`);
+        // return;
+
+        // 2. Если API вернул пустоту — просто выходим
+        if (!data.difference || data.difference.length === 0) {
+          if (lastDt === 0)
+            addLog(`✅ Устройства инициализированы (локальные сигналы)`);
+          return;
+        }
       }
 
       data.difference.forEach((item) => {
