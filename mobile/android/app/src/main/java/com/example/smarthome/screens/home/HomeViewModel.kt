@@ -139,13 +139,47 @@ class HomeViewModel : ViewModel() {
 }
 
 private val alarmSignals = setOf("leak", "smoke", "fire", "gas", "flood", "alarm")
+private val onlineSignals = setOf("online", "connected", "reachable")
+private val batterySignals = setOf("battery", "battery_level", "charge")
+
+private val classPrefixes = setOf(
+    "integrations_devices",
+    "integrations",
+    "parkcloud_device",
+    "devices",
+)
 
 private fun isProblemDevice(device: DeviceOut): Boolean =
     device.lastValues.any { (name, value) ->
-        when (name.lowercase()) {
-            in alarmSignals -> value.booleanOrNull == true
-            "online" -> value.booleanOrNull == false
-            "battery" -> (value.content.toDoubleOrNull() ?: 100.0) <= 10.0
+        when (normalizeSignalName(name)) {
+            in alarmSignals -> isTruthy(value)
+            in onlineSignals -> !isTruthy(value)
+            in batterySignals -> (value.content.toDoubleOrNull() ?: 100.0) <= 10.0
             else -> false
         }
     }
+
+private fun normalizeSignalName(name: String): String {
+    var signal = name.trim().lowercase()
+    var parts = signal.split("_")
+    while (parts.size > 1) {
+        val head = parts.first()
+        val isClassPrefix = head in classPrefixes ||
+            parts.take(2).joinToString("_") in classPrefixes
+        if (!isClassPrefix) break
+        val cut = if (parts.take(2).joinToString("_") in classPrefixes) 2 else 1
+        parts = parts.drop(cut)
+        signal = parts.joinToString("_")
+    }
+    return signal
+}
+
+private fun isTruthy(value: kotlinx.serialization.json.JsonPrimitive): Boolean {
+    value.booleanOrNull?.let { return it }
+    val text = value.content.trim().lowercase()
+    return when (text) {
+        "true", "1", "on", "yes", "open", "opened", "alarm" -> true
+        "false", "0", "off", "no", "closed", "normal", "ok", "idle" -> false
+        else -> text.toDoubleOrNull()?.let { it != 0.0 } ?: false
+    }
+}

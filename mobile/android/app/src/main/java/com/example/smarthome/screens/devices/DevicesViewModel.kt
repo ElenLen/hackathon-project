@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 data class DevicesUiState(
     val devices: List<DeviceOut> = emptyList(),
     val loading: Boolean = true,
+    val saving: Boolean = false,
     val error: String? = null,
+    val message: String? = null,
 )
 
 class DevicesViewModel : ViewModel() {
@@ -28,7 +30,7 @@ class DevicesViewModel : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(loading = true, error = null) }
             try {
-                val devices = RepositoryProvider.repository.getDevices()
+                val devices = RepositoryProvider.repository.getDevices().distinctBy { it.id }
                 _state.update { it.copy(devices = devices, loading = false) }
             } catch (e: Exception) {
                 _state.update {
@@ -39,5 +41,42 @@ class DevicesViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun addDevice(title: String, family: String) {
+        if (_state.value.saving) return
+        viewModelScope.launch {
+            _state.update { it.copy(saving = true, error = null) }
+            try {
+                val device = RepositoryProvider.repository.addDevice(
+                    title = title.trim(),
+                    family = family,
+                )
+                _state.update { current ->
+                    val updated = (current.devices.filterNot { it.id == device.id } + device)
+                        .distinctBy { it.id }
+                    current.copy(
+                        devices = updated,
+                        saving = false,
+                        message = "Устройство «${device.title}» добавлено",
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        saving = false,
+                        error = e.message ?: "Не удалось добавить устройство",
+                    )
+                }
+            }
+        }
+    }
+
+    fun consumeMessage() {
+        _state.update { it.copy(message = null) }
+    }
+
+    fun consumeError() {
+        _state.update { it.copy(error = null) }
     }
 }
