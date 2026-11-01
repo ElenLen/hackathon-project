@@ -1,8 +1,38 @@
 import axios from "axios";
 
 export const BASE_URL = "/api";
-export const UST_TOKEN = "ust-2815073-048272461ef140f8b1d680df3bbb88d0";
 
+// ==================== ТОКЕН ====================
+/**
+ * Приоритет получения токена:
+ * 1. localStorage (токен из авторизации пользователя)
+ * 2. .env (VITE_UST_TOKEN — для локальной разработки)
+ * 3. Пустая строка (если ничего нет — API вернет ошибку, и мы ее покажем)
+ */
+export function getUstToken(): string {
+  // 1. Пробуем из localStorage
+  try {
+    const stored = localStorage.getItem("ujin_user_v3");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.token) return parsed.token;
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Пробуем из .env
+  const envToken = import.meta.env.VITE_UST_TOKEN;
+  if (envToken) return envToken;
+
+  // 3. Нет токена
+  return "";
+}
+
+// Для обратной совместимости, но лучше использовать getUstToken()
+export const UST_TOKEN = getUstToken();
+
+// ==================== КОНФИГ УСТРОЙСТВ ====================
 export const DEVICES_CONFIG = [
   {
     id: "khikhikhakhakery_leak_01",
@@ -41,8 +71,10 @@ export const DEVICES_CONFIG = [
   },
 ] as const;
 
+// ==================== AXIOS ====================
 const api = axios.create({ baseURL: BASE_URL });
 
+// ==================== ТИПЫ ====================
 export interface DifferenceItem {
   serialnumber: string;
   signal: string;
@@ -58,19 +90,28 @@ export interface DifferenceResponse {
   timestamp: number;
 }
 
+// ==================== СИНХРОНИЗАЦИЯ ====================
 export async function fetchDifference(
   dt: number,
-  token = UST_TOKEN,
+  token?: string,
 ): Promise<DifferenceResponse> {
-  const res = await api.get("/devices/difference", { params: { token, dt } });
+  const actualToken = token || getUstToken();
+  if (!actualToken) throw new Error("Токен не найден. Авторизуйтесь заново.");
+
+  const res = await api.get("/devices/difference", {
+    params: { token: actualToken, dt },
+  });
   if (res.data.error !== 0) throw new Error(res.data.message);
   return res.data.data as DifferenceResponse;
 }
 
 export async function publishSignals(
   updates: Array<{ sn: string; signal: string; value: any }>,
-  token = UST_TOKEN,
+  token?: string,
 ): Promise<void> {
+  const actualToken = token || getUstToken();
+  if (!actualToken) throw new Error("Токен не найден. Авторизуйтесь заново.");
+
   const res = await api.post(
     "/import_device/group-update-device-signal",
     {
@@ -81,7 +122,10 @@ export async function publishSignals(
         c: "integrations_devices",
       })),
     },
-    { params: { token }, headers: { "Content-Type": "application/json" } },
+    {
+      params: { token: actualToken },
+      headers: { "Content-Type": "application/json" },
+    },
   );
   if (res.data.error !== 0) throw new Error(res.data.message);
 }
@@ -113,7 +157,8 @@ export async function authenticate(
     );
     if (res.data.error !== 0) return null;
     return res.data.data.user as AuthUser;
-  } catch {
+  } catch (err) {
+    console.error("Auth error:", err);
     return null;
   }
 }

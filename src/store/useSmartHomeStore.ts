@@ -149,7 +149,7 @@ export const useSmartHomeStore = create<SmartHomeState>((set, get) => ({
   applyDifference: async () => {
     const { lastDt, addLog } = get();
     try {
-      const data = await fetchDifference(lastDt, UST_TOKEN);
+      const data = await fetchDifference(lastDt);
 
       // Если API вернул пустоту — просто ставим статус "онлайн" для всех устройств
       if (!data.difference || data.difference.length === 0) {

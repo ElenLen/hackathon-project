@@ -11,7 +11,7 @@ export default defineConfig({
       "/api": {
         target: "https://api-uae-test.ujin.tech",
         changeOrigin: true,
-        secure: true,
+        secure: false,
         // /api/bmsdevice/... → https://api-uae-test.ujin.tech/api/bmsdevice/...
         // путь оставляем как есть — префикс /api уже совпадает с базой
       },
