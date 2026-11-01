@@ -48,11 +48,13 @@ class ScenariosViewModel : ViewModel() {
         _state.update { it.copy(loading = true, error = null) }
         viewModelScope.launch {
             try {
-                val devices = repository.getDevices()
+                // distinctBy — защита от дублей "dev-7" и т.п. в LazyGrid/LazyColumn
+                val devices = repository.getDevices().distinctBy { it.id }
                 val declarations = devices.map { device ->
                     async { device.id to repository.getDeclaration(device.id) }
                 }.awaitAll().toMap()
                 val scenarios = repository.getScenarioDefinitions()
+                    .distinctBy { it.id }
                 _state.update {
                     it.copy(
                         loading = false,

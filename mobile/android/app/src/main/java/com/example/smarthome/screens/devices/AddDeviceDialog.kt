@@ -61,6 +61,7 @@ private val familyOptionValues = listOf(
     "fire" to "Пожарный",
     "elevator" to "Лифт",
     "hub" to "Хаб",
+    "other" to "Другое",
 )
 
 fun deviceFamilyOptions(): List<DeviceFamilyOption> =

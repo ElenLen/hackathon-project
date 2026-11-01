@@ -312,6 +312,7 @@ fun familyIconFor(family: String): ImageVector = when (family.lowercase()) {
     "intercom", "doorphone" -> Icons.Filled.Doorbell
     "barrier", "gate", "parking" -> Icons.Filled.Garage
     "camera", "cctv" -> Icons.Filled.Videocam
+    "other" -> Icons.Filled.Add
     else -> Icons.Filled.MeetingRoom
 }
 
@@ -323,8 +324,9 @@ private fun DeviceOut.familyLabel(): String = when (family.lowercase()) {
     "intercom", "doorphone" -> "ДОМОФОН"
     "barrier", "gate", "parking" -> "ПАРКОВКА"
     "camera", "cctv" -> "КАМЕРА"
+    "other" -> "ДРУГОЕ"
     else -> "УСТРОЙСТВО"
-}
+}м
 
 private fun DeviceOut.status(): Pair<String, Color> {
     if (lastValues["online"]?.booleanOrNull == false) {

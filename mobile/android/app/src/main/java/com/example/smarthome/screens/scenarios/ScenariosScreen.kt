@@ -121,7 +121,7 @@ fun ScenariosScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        items(state.scenarios, key = { it.id }) { scenario ->
+                        items(state.scenarios.distinctBy { it.id }, key = { it.id }) { scenario ->
                             ScenarioCard(
                                 scenario = scenario,
                                 declarations = state.declarations,
