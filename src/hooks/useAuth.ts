@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import type { UserProfile } from "../types/auth"; // если используешь типы, но можно заменить на any
 
 const STORAGE_KEY = "ujin_user_v3";
 
