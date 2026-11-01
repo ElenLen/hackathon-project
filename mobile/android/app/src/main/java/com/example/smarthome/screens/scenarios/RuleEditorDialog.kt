@@ -11,6 +11,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -35,6 +37,9 @@ import com.example.smarthome.data.dto.DeviceOut
 import com.example.smarthome.data.dto.RuleSpec
 import com.example.smarthome.data.dto.SignalDeclaration
 import com.example.smarthome.data.dto.guessDeclaration
+import com.example.smarthome.ui.theme.UjinCyan
+import com.example.smarthome.ui.theme.UjinGreen
+import com.example.smarthome.ui.theme.UjinSurface
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
@@ -67,6 +72,14 @@ private val operatorOptions = listOf(
     OperatorOption("lte", "≤"),
     OperatorOption("changed", "изменилось"),
 )
+
+/** Шторы: единственный сигнал open, значения 0/1. */
+private const val CURTAIN_FAMILY = "curtain"
+private const val CURTAIN_SIGNAL = "open"
+private const val CURTAIN_CLOSE = 0
+private const val CURTAIN_OPEN = 1
+
+private fun DeviceOut.isCurtain(): Boolean = family.lowercase() == CURTAIN_FAMILY
 
 @Composable
 fun RuleEditorDialog(
@@ -105,10 +118,12 @@ fun RuleEditorDialog(
         )
     }
 
+    val isCurtain = selectedDevice?.isCurtain() == true
+
     val needsValue = kind == RuleEditorKind.ACTION || operator != "changed"
     val canConfirm = selectedDevice != null &&
-        selectedSignal.isNotBlank() &&
-        (!needsValue || value.content.isNotBlank())
+            selectedSignal.isNotBlank() &&
+            (!needsValue || value.content.isNotBlank())
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -142,59 +157,104 @@ fun RuleEditorDialog(
                     }
                 }
 
-                DialogLabel("Сигнал")
-                if (availableSignals.isEmpty()) {
-                    Text(
-                        text = "Нет подходящих сигналов",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(availableSignals, key = { it.name }) { signal ->
-                            FilterChip(
-                                selected = signal.name == selectedSignal,
-                                onClick = { selectedSignal = signal.name },
-                                label = { Text(signal.title.ifBlank { signal.name }) },
-                            )
+                if (isCurtain) {
+                    // Шторы: только Открыть/Закрыть, без сигнала и значения
+                    DialogLabel("Действие со шторами")
+                    val currentOpen = if (kind == RuleEditorKind.ACTION) {
+                        value.content == CURTAIN_OPEN.toString()
+                    } else {
+                        initial.value.content == CURTAIN_OPEN.toString()
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Button(
+                            onClick = {
+                                selectedSignal = CURTAIN_SIGNAL
+                                operator = "eq"
+                                value = JsonPrimitive(CURTAIN_OPEN)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (currentOpen) UjinCyan else UjinCyan.copy(alpha = 0.18f),
+                                contentColor = if (currentOpen) UjinSurface else UjinCyan,
+                            ),
+                        ) {
+                            Text("Открыть", fontWeight = FontWeight.SemiBold)
+                        }
+                        Button(
+                            onClick = {
+                                selectedSignal = CURTAIN_SIGNAL
+                                operator = "eq"
+                                value = JsonPrimitive(CURTAIN_CLOSE)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (!currentOpen) UjinCyan else UjinCyan.copy(alpha = 0.18f),
+                                contentColor = if (!currentOpen) UjinSurface else UjinCyan,
+                            ),
+                        ) {
+                            Text("Закрыть", fontWeight = FontWeight.SemiBold)
                         }
                     }
-                }
-
-                if (kind != RuleEditorKind.ACTION) {
-                    DialogLabel("Сравнение")
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(operatorOptions, key = { it.code }) { option ->
-                            FilterChip(
-                                selected = option.code == operator,
-                                onClick = { operator = option.code },
-                                label = { Text(option.label) },
-                            )
+                } else {
+                    DialogLabel("Сигнал")
+                    if (availableSignals.isEmpty()) {
+                        Text(
+                            text = "Нет подходящих сигналов",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(availableSignals, key = { it.name }) { signal ->
+                                FilterChip(
+                                    selected = signal.name == selectedSignal,
+                                    onClick = { selectedSignal = signal.name },
+                                    label = { Text(signal.title.ifBlank { signal.name }) },
+                                )
+                            }
                         }
                     }
-                }
 
-                DialogLabel("Значение")
-                if (operator == "changed" && kind != RuleEditorKind.ACTION) {
-                    Text(
-                        text = "Сценарий сработает при любом изменении сигнала",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    ValueEditor(
-                        declaration = declaration,
-                        value = value,
-                        onValueChange = { value = it },
-                    )
-                }
+                    if (kind != RuleEditorKind.ACTION) {
+                        DialogLabel("Сравнение")
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(operatorOptions, key = { it.code }) { option ->
+                                FilterChip(
+                                    selected = option.code == operator,
+                                    onClick = { operator = option.code },
+                                    label = { Text(option.label) },
+                                )
+                            }
+                        }
+                    }
 
-                if (declaration != null) {
-                    Text(
-                        text = "${declaration.name} · ${declaration.management} · ${declaration.control}",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    DialogLabel("Значение")
+                    if (operator == "changed" && kind != RuleEditorKind.ACTION) {
+                        Text(
+                            text = "Сценарий сработает при любом изменении сигнала",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        ValueEditor(
+                            declaration = declaration,
+                            value = value,
+                            onValueChange = { value = it },
+                        )
+                    }
+
+                    if (declaration != null) {
+                        Text(
+                            text = "${declaration.name} · ${declaration.management} · ${declaration.control}",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         },
@@ -202,14 +262,22 @@ fun RuleEditorDialog(
             TextButton(
                 enabled = canConfirm,
                 onClick = {
-                    onConfirm(
+                    val draft = if (isCurtain) {
+                        RuleDraft(
+                            deviceId = selectedDeviceId,
+                            signal = CURTAIN_SIGNAL,
+                            operator = "eq",
+                            value = value,
+                        )
+                    } else {
                         RuleDraft(
                             deviceId = selectedDeviceId,
                             signal = selectedSignal,
                             operator = if (kind == RuleEditorKind.ACTION) "eq" else operator,
                             value = if (needsValue) value else JsonPrimitive(1),
-                        ),
-                    )
+                        )
+                    }
+                    onConfirm(draft)
                 },
             ) {
                 Text("Сохранить")

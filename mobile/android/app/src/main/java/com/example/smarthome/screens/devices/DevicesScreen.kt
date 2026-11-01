@@ -326,7 +326,7 @@ private fun DeviceOut.familyLabel(): String = when (family.lowercase()) {
     "camera", "cctv" -> "КАМЕРА"
     "other" -> "ДРУГОЕ"
     else -> "УСТРОЙСТВО"
-}м
+}
 
 private fun DeviceOut.status(): Pair<String, Color> {
     if (lastValues["online"]?.booleanOrNull == false) {

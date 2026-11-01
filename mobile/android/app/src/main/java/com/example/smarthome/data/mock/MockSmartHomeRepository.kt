@@ -54,6 +54,14 @@ class MockSmartHomeRepository : SmartHomeRepository {
                 "obstacle" to JsonPrimitive(0),
             ),
         ),
+        "dev-10" to DeviceOut(
+            id = "dev-10", title = "Шторы в гостиной", family = "curtain",
+            lastValues = mapOf(
+                "position" to JsonPrimitive(0),
+                "open" to JsonPrimitive(0),
+                "online" to JsonPrimitive(1),
+            ),
+        ),
     )
 
     private val declarations: Map<String, List<SignalDeclaration>> = mapOf(
@@ -84,8 +92,6 @@ class MockSmartHomeRepository : SmartHomeRepository {
             declaration("hold_time", "Задержка", "counter", "rw", "setting", measure = "с", min = 0.0, max = 300.0),
             declaration("obstacle", "Препятствие", "list", "r", "property", layout = mapOf("0" to "Нет", "1" to "Есть")),
         ),
-        // Декларации для штор оставлены: они пригодятся, когда пользователь
-        // сам добавит устройство с family = "curtain" через addDevice().
         "curtain" to listOf(
             declaration("position", "Положение", "range", "rw", "capability", measure = "%", min = 0.0, max = 100.0),
             declaration("open", "Открыть", "switch", "rw", "capability", layout = mapOf("0" to "Закрыть", "1" to "Открыть")),
@@ -139,7 +145,8 @@ class MockSmartHomeRepository : SmartHomeRepository {
             trigger = RuleSpec(id = "trigger", deviceId = "dev-7", signal = "open_cmd", value = JsonPrimitive(1)),
             actions = listOf(ActionSpec(id = "action-3", deviceId = "dev-7", signal = "hold_time", value = JsonPrimitive(15))),
         )
-        // Сценарий со шторами пользователь создаёт сам после добавления устройства.
+        // Сценарий «Жара → шторы и вентилятор» НЕ создаётся заранее —
+        // пользователь собирает его в ScenarioEditorScreen.
     }
 
     override suspend fun getDevices(): List<DeviceOut> {
