@@ -50,7 +50,6 @@ data class DeviceFamilyOption(
 )
 
 private val familyOptionValues = listOf(
-    "leak" to "Протечка",
     "thermostat" to "Термостат",
     "light" to "Освещение",
     "ventilation" to "Вентиляция",

@@ -10,13 +10,6 @@ import kotlin.random.Random
 class MockSmartHomeRepository : SmartHomeRepository {
 
     private val devices = mutableMapOf<String, DeviceOut>(
-        "dev-1" to DeviceOut(
-            id = "dev-1", title = "Датчик протечки", family = "leak",
-            lastValues = mapOf(
-                "leak" to JsonPrimitive(0),
-                "battery" to JsonPrimitive(92),
-            ),
-        ),
         "dev-2" to DeviceOut(
             id = "dev-2", title = "Термостат", family = "thermostat",
             lastValues = mapOf(
@@ -64,11 +57,6 @@ class MockSmartHomeRepository : SmartHomeRepository {
     )
 
     private val declarations: Map<String, List<SignalDeclaration>> = mapOf(
-        "leak" to listOf(
-            declaration("leak", "Протечка", "list", "r", "property", layout = mapOf("0" to "Нет", "1" to "Протечка")),
-            declaration("battery", "Батарея", "counter", "r", "property", measure = "%", min = 0.0, max = 100.0),
-            declaration("tamper", "Вскрытие", "list", "r", "property", layout = mapOf("0" to "Нет", "1" to "Вскрыт")),
-        ),
         "thermostat" to listOf(
             declaration("temperature", "Температура", "graph", "r", "property", measure = "°C"),
             declaration("target", "Цель", "range", "rw", "setting", measure = "°C", min = 5.0, max = 35.0),
@@ -121,7 +109,6 @@ class MockSmartHomeRepository : SmartHomeRepository {
             declaration("brightness", "Положение", "range", "rw", "capability", measure = "%", min = 1.0, max = 100.0),
         ),
         "hub" to listOf(
-            declaration("leak", "Протечка", "list", "r", "property", layout = mapOf("0" to "Нет", "1" to "Протечка")),
             declaration("mute", "Без звука", "switch", "rw", "capability", layout = mapOf("0" to "Выкл", "1" to "Вкл")),
         ),
     )
@@ -131,12 +118,6 @@ class MockSmartHomeRepository : SmartHomeRepository {
     private var nextRunId = 1
 
     init {
-        scenarios += ScenarioDefinition(
-            id = "sc-1",
-            name = "Протечка → свет",
-            trigger = RuleSpec(id = "trigger", deviceId = "dev-1", signal = "leak", value = JsonPrimitive(1)),
-            actions = listOf(ActionSpec(id = "action-1", deviceId = "dev-3", signal = "on", value = JsonPrimitive(1))),
-        )
         scenarios += ScenarioDefinition(
             id = "sc-2",
             name = "Жара → вентиляция",

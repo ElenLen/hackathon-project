@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -306,7 +305,6 @@ private fun DeviceCard(
 private fun DeviceOut.icon(): ImageVector = familyIconFor(family)
 
 fun familyIconFor(family: String): ImageVector = when (family.lowercase()) {
-    "leak", "water", "flood" -> Icons.Filled.WaterDrop
     "thermostat", "climate" -> Icons.Filled.Thermostat
     "light", "lamp" -> Icons.Filled.Lightbulb
     "ventilation", "fan" -> Icons.Filled.Air
@@ -318,7 +316,6 @@ fun familyIconFor(family: String): ImageVector = when (family.lowercase()) {
 }
 
 private fun DeviceOut.familyLabel(): String = when (family.lowercase()) {
-    "leak", "water", "flood" -> "ДАТЧИК"
     "thermostat", "climate" -> "КЛИМАТ"
     "light", "lamp" -> "ОСВЕЩЕНИЕ"
     "ventilation", "fan" -> "ВЕНТИЛЯЦИЯ"
@@ -335,14 +332,6 @@ private fun DeviceOut.status(): Pair<String, Color> {
     }
 
     return when (family.lowercase()) {
-        "leak", "water", "flood" -> {
-            if (lastValues["leak"]?.booleanOrNull == true) {
-                "Протечка" to UjinRed
-            } else {
-                "Нет протечек" to UjinGreen
-            }
-        }
-
         "thermostat", "climate" -> {
             val temperature = lastValues["temperature"]?.content
                 ?: lastValues["target"]?.content

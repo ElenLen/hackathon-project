@@ -65,6 +65,35 @@ import com.example.smarthome.ui.theme.UjinCyan
 import com.example.smarthome.ui.theme.UjinGreen
 import com.example.smarthome.ui.theme.UjinRed
 
+/**
+ * Ключевые слова, по которым скрываются устройства/сценарии,
+ * относящиеся к протечкам и трубам.
+ */
+private val HIDDEN_KEYWORDS = listOf(
+    "протечк",
+    "труб",
+    "leak",
+    "pipe",
+)
+
+private fun DeviceOut.isHiddenDevice(): Boolean {
+    val haystack = buildString {
+        append(title)
+        append(' ')
+        append(id)
+    }.lowercase()
+    return HIDDEN_KEYWORDS.any { haystack.contains(it) }
+}
+
+private fun ScenarioOut.isHiddenScenario(): Boolean {
+    val haystack = buildString {
+        append(name)
+        append(' ')
+        append(id)
+    }.lowercase()
+    return HIDDEN_KEYWORDS.any { haystack.contains(it) }
+}
+
 @Composable
 fun HomeScreen(
     onScenariosClick: () -> Unit,
@@ -79,6 +108,15 @@ fun HomeScreen(
             viewModel.consumeMessage()
         }
     }
+
+    // Скрываем устройства протечки/трубы и соответствующие сценарии
+    val visibleProblemDevices = remember(state.problemDevices) {
+        state.problemDevices.filterNot { it.isHiddenDevice() }
+    }
+    val visibleScenarios = remember(state.scenarios) {
+        state.scenarios.filterNot { it.isHiddenScenario() }
+    }
+    val visibleAllGood = state.allGood || visibleProblemDevices.isEmpty()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -112,8 +150,8 @@ fun HomeScreen(
 
                     item {
                         StatusCard(
-                            problemDevices = state.problemDevices,
-                            allGood = state.allGood,
+                            problemDevices = visibleProblemDevices,
+                            allGood = visibleAllGood,
                         )
                     }
 
@@ -142,7 +180,7 @@ fun HomeScreen(
                         }
                     }
 
-                    if (state.scenarios.isEmpty()) {
+                    if (visibleScenarios.isEmpty()) {
                         item {
                             EmptyHint("Пока нет доступных сценариев")
                         }
@@ -150,14 +188,14 @@ fun HomeScreen(
                         item { SubsectionTitle("Быстрые") }
                         item {
                             QuickScenariosRow(
-                                scenarios = state.scenarios.take(4),
+                                scenarios = visibleScenarios.take(4),
                                 busyScenarioId = state.busyScenarioId,
                                 onRun = viewModel::runScenario,
                             )
                         }
 
                         item { SubsectionTitle("Популярные") }
-                        items(state.scenarios, key = { it.id }) { scenario ->
+                        items(visibleScenarios, key = { it.id }) { scenario ->
                             ScenarioRow(
                                 scenario = scenario,
                                 busy = state.busyScenarioId == scenario.id,
